@@ -1,0 +1,57 @@
+# Codex / Cline agent files
+.agents/
+.codex/
+.clinerules
+.mcp.json
+
+# Cline worktrees and state
+.cline/
+
+# Obsidian vault
+.obsidian/
+
+# Canvas files
+*.canvas
+Untitled*.canvas
+
+# Root-level notes and docs (keep /docs/)
+*.md
+!docs/**/*.md
+
+# Tasks
+tasks.md
+AGENTS.md
+
+# Local env contracts
+.env.local
+.env.example
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+
+# Next.js
+.next/
+out/
+
+# Package managers
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+bun.lock
+
+# Supabase local state
+supabase/.temp/
+
+# Build artifacts
+tsconfig.tsbuildinfo
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+
+# Python scripts (if not needed in production)
+python_scripts/
+

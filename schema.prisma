@@ -1,0 +1,82 @@
+// schema.prisma
+// Extracted and Reverse-Engineered from Niglabs Live Dashboard
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Patient {
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  patient_no           Int      @unique @default(autoincrement()) // Matches Niglabs "Patient No: 2313"
+  
+  // Demographics
+  title                String   // Mr, Mrs, Miss
+  full_name            String
+  gender               String   // Male, Female, Others
+  age_value            Int
+  age_unit             String   // Y, M, D
+  
+  // Physical Stats
+  height               Float?
+  weight               Float?
+  
+  // Contact Info
+  mobile_no            String
+  alternate_mobile_no  String?
+  email                String?
+  
+  // Location
+  area                 String?
+  city                 String?
+  pincode              String?
+  
+  // Referrals (Matches Niglabs Referral Engine)
+  referred_by          String?  // SELF, DOCTOR, etc.
+  outside_lab_ref      String?
+  hospital_ref         String?
+  
+  // Insurance
+  insurance_no         String?
+  insurance_company    String?
+  
+  // Timestamps
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+
+  // Relationships
+  lab_reports          LabReport[]
+  invoices             Invoice[]
+}
+
+model LabReport {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  patient_id      String   @db.Uuid
+  patient         Patient  @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  
+  status          String   @default("Pending") // Pending, Completed, All Reports
+  department      String   // Biochemistry, Pathology, etc.
+  
+  // AI Extraction Fields (Our massive advantage over Niglabs)
+  raw_pdf_url     String?
+  ai_parsed_json  Json?    // Stores the structured output from Claude/Gemini mapping the PDF
+  
+  created_at      DateTime @default(now())
+}
+
+model Invoice {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  patient_id      String   @db.Uuid
+  patient         Patient  @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  
+  total_amount    Float
+  paid_amount     Float    @default(0)
+  status          String   // Paid, Partially Paid, Unpaid
+  
+  created_at      DateTime @default(now())
+}

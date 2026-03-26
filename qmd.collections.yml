@@ -1,0 +1,13 @@
+collections:
+  - name: health-crm
+    path: .
+    include:
+      - "**/*.{ts,tsx,js,jsx,md,json,html,css,yml,sql,toml}"
+    exclude:
+      - "node_modules/**"
+      - ".next/**"
+      - "dist/**"
+      - ".git/**"
+      - ".qmd/**"
+      - ".tools/**"
+      - ".env*.local"

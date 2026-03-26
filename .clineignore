@@ -1,0 +1,28 @@
+# Cline ignore patterns
+# Agent and AI config
+.agents/
+.codex/
+.clinerules
+.mcp.json
+
+# Cline worktrees
+.cline/
+
+# Obsidian
+.obsidian/
+
+# Canvas files
+*.canvas
+Untitled*.canvas
+
+# Root-level notes
+*.md
+!docs/**/*.md
+tasks.md
+AGENTS.md
+
+# Python scripts
+python_scripts/
+
+# Lock files
+bun.lock
