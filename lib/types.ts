@@ -1,5 +1,3 @@
-import type { LucideIcon } from "lucide-react";
-
 export type AppRole = "admin" | "lab_staff" | "clinician";
 export type LabReportReviewState = "pending" | "reviewed" | "rejected";
 export type AppointmentStatus =
@@ -88,12 +86,18 @@ export type DashboardSnapshot = {
   foundationStatus: Array<{
     title: string;
     copy: string;
-    icon: LucideIcon;
+    iconName: string;
   }>;
   upcomingAppointments: Array<{
     id: string;
     title: string;
     scheduledFor: string;
     status: string;
+  }>;
+  pendingReports: Array<{
+    id: string;
+    fileName: string;
+    patientName: string | null;
+    ingestedAt: string;
   }>;
 };

@@ -1,0 +1,6 @@
+{
+  "$schema": "https://deno.land/x/deno/cli/schemas/config-file.schema.json",
+  "tasks": {
+    "start": "deno run --allow-net --allow-env --allow-read index.ts"
+  }
+}

@@ -29,7 +29,7 @@ export function SignOutButton() {
       type="button"
       onClick={handleSignOut}
       disabled={pending}
-      className="inline-flex w-full items-center justify-center rounded-2xl border border-[var(--line)] bg-white/70 px-4 py-3 text-sm font-semibold transition hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-50"
+      className="inline-flex w-full items-center justify-center rounded-2xl border border-outline-variant/30 bg-surface-container-low px-4 py-3 text-sm font-semibold text-on-surface transition hover:border-error/50 hover:text-error hover:bg-error/10 disabled:cursor-not-allowed disabled:opacity-50"
     >
       {pending ? "Signing out..." : "Sign out"}
     </button>

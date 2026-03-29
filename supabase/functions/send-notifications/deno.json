@@ -1,0 +1,9 @@
+{
+  "imports": {
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
+  },
+  "tasks": {
+    "deploy": "supabase functions deploy send-notifications",
+    "serve": "supabase functions serve send-notifications"
+  }
+}

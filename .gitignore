@@ -1,11 +1,16 @@
-# Codex / Cline agent files
+# Agent / AI tool config (never commit)
 .agents/
 .codex/
 .clinerules
 .mcp.json
-
-# Cline worktrees and state
+.mcp-stacks/
+.claude/
+.claudeignore
+.clineignore
 .cline/
+.qmd/
+.smart-env/
+.tools/
 
 # Obsidian vault
 .obsidian/
@@ -51,6 +56,13 @@ tsconfig.tsbuildinfo
 # OS / editor noise
 .DS_Store
 Thumbs.db
+
+# Misc local files
+lint_errors.txt
+qmd_bugs.txt
+qmd_help.txt
+*.qmd_help.txt
+c:*
 
 # Python scripts (if not needed in production)
 python_scripts/

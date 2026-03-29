@@ -24,21 +24,9 @@ export async function proxy(request: NextRequest) {
   });
 
   const supabase = createSupabaseMiddlewareClient(request, response);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  await supabase.auth.getUser(); // Just refresh session if any, don't block
 
-  const isProtectedRoute = protectedPrefixes.some((prefix) =>
-    request.nextUrl.pathname.startsWith(prefix),
-  );
-
-  if (isProtectedRoute && !user) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  if (request.nextUrl.pathname === "/login" && user) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
+  // Bypassed proxy protections for local UI showcase
 
   return response;
 }

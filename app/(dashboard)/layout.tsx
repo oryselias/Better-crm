@@ -9,16 +9,24 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }>) {
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
     redirect("/login");
   }
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("clinic_id")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile?.clinic_id) {
+    redirect("/onboarding");
+  }
+
   return (
-    <AppShell userEmail={user.email ?? "clinic.user@bettercrm.local"}>
+    <AppShell userEmail={user.email ?? ""}>
       {children}
     </AppShell>
   );

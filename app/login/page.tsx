@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { LoginForm } from "@/components/auth/login-form";
 import { hasSupabasePublicEnv } from "@/lib/supabase/env";
@@ -9,7 +10,7 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen px-6 py-8 md:px-10">
       <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-        <section className="surface relative overflow-hidden rounded-[2rem] border border-[var(--line)] px-8 py-10 md:px-12 md:py-12">
+        <section className="surface relative overflow-hidden rounded-[2rem] border border-outline-variant/30 px-8 py-10 md:px-12 md:py-12">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(15,118,110,0.18),_transparent_34%),radial-gradient(circle_at_bottom_right,_rgba(20,32,51,0.12),_transparent_24%)]" />
           <div className="relative flex h-full flex-col justify-between gap-12">
             <div className="space-y-5">
@@ -21,7 +22,7 @@ export default function LoginPage() {
                 >
                   Calm control for patients, appointments, and lab review.
                 </h1>
-                <p className="max-w-xl text-base leading-7 text-[var(--muted)] md:text-lg">
+                <p className="max-w-xl text-base leading-7 text-on-surface-variant md:text-lg">
                   Better CRM starts with clinic-scoped access, auditable report
                   ingestion, and a focused admin workspace that can grow into
                   messaging and billing without rewriting the foundation.
@@ -35,32 +36,32 @@ export default function LoginPage() {
                 ["Traceable ingestion", "Raw files, parsed payloads, and review state stay linked."],
                 ["Operator-ready UI", "A premium shell with room for real workflows, not demo clutter."],
               ].map(([title, copy]) => (
-                <div key={title} className="rounded-[1.5rem] border border-white/50 bg-white/55 p-5">
+                <div key={title} className="rounded-[1.5rem] border border-outline-variant/30 bg-surface-container p-5">
                   <p className="text-sm font-semibold tracking-[-0.02em]">{title}</p>
-                  <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{copy}</p>
+                  <p className="mt-2 text-sm leading-6 text-on-surface-variant">{copy}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="surface flex rounded-[2rem] border border-[var(--line)] px-6 py-8 md:px-8">
+        <section className="surface flex rounded-[2rem] border border-outline-variant/30 px-6 py-8 md:px-8">
           <div className="m-auto w-full max-w-md space-y-6">
             <div className="space-y-3">
-              <p className="eyebrow">Secure Sign In</p>
+              <p className="eyebrow">Clinic Access</p>
               <div>
                 <h2 className="text-3xl font-semibold tracking-[-0.04em]">
-                  Access your clinic workspace
+                  Sign in or create an account
                 </h2>
-                <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-                  Use Google or a Supabase email and password account tied to
-                  your clinic profile.
+                <p className="mt-2 text-sm leading-6 text-on-surface-variant">
+                  Use Google or an email and password. New users can sign up
+                  below — your clinic profile is linked after first login.
                 </p>
               </div>
             </div>
 
             {!isConfigured ? (
-              <div className="rounded-[1.5rem] border border-[var(--warning)]/15 bg-[var(--warning-soft)] p-5 text-sm leading-6 text-[var(--warning)]">
+              <div className="rounded-[1.5rem] border border-amber-500/20 bg-amber-500/10 p-5 text-sm leading-6 text-amber-400">
                 Add the Supabase values from <code>.env.example</code> into a
                 local env file before signing in. You can verify the connection
                 at{" "}
@@ -71,9 +72,11 @@ export default function LoginPage() {
               </div>
             ) : null}
 
-            <LoginForm disabled={!isConfigured} />
+            <Suspense>
+              <LoginForm disabled={!isConfigured} />
+            </Suspense>
 
-            <div className="space-y-2 text-sm leading-6 text-[var(--muted)]">
+            <div className="space-y-2 text-sm leading-6 text-on-surface-variant">
               <p>Sign-in requires:</p>
               <ul className="space-y-1">
                 <li>
@@ -96,7 +99,7 @@ export default function LoginPage() {
               </p>
               <p>
                 Need a connection check? Visit{" "}
-                <Link href="/setup/supabase" className="font-semibold text-[var(--accent)]">
+                <Link href="/setup/supabase" className="font-semibold text-primary-container">
                   the Supabase verification page
                 </Link>
                 .
