@@ -15,4 +15,11 @@ if (result.error) {
   throw result.error;
 }
 
-process.exit(result.status ?? 0);
+if (result.status !== null) {
+  process.exit(result.status);
+} else if (result.signal) {
+  console.error(`Setup script killed by signal: ${result.signal}`);
+  process.exit(1);
+} else {
+  process.exit(0);
+}

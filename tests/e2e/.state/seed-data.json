@@ -1,6 +1,6 @@
 {
-  "email": "routecheck@bettercrm.local",
-  "password": "RouteCheck123!",
+  "email": "<SEED_EMAIL_PLACEHOLDER>",
+  "password": "<SEED_PASSWORD_PLACEHOLDER>",
   "clinicSlug": "better-crm-e2e",
   "clinicId": "2f041dcd-fb7a-4ee2-a7b6-f370c9361888",
   "patientId": "a7ce4694-aa22-4d8c-99f6-45cd9fc84acd",
