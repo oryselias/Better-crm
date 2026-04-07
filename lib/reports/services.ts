@@ -21,7 +21,9 @@ export function invalidateTestCatalog() { _catalogCache = null; }
 
 export async function searchPatients(q: string) {
   const s = createSupabaseBrowserClient();
-  const { data, error } = await s.from('patients').select('id,clinic_id,full_name,date_of_birth,sex,phone,created_at').or(`full_name.ilike.%${q}%,phone.ilike.%${q}%`).order('full_name').limit(20);
+  // Escape PostgREST meta-characters to prevent query injection
+  const escapedQ = q.replace(/[\\%.,()]/g, (c) => `\\${c}`);
+  const { data, error } = await s.from('patients').select('id,clinic_id,full_name,date_of_birth,sex,phone,created_at').or(`full_name.ilike.%${escapedQ}%,phone.ilike.%${escapedQ}%`).order('full_name').limit(20);
   if (error) throw error;
   return data ?? [];
 }
@@ -133,6 +135,7 @@ export async function createReport(p: CreateReportParams) {
   const { tests } = await buildPayload(p.selectedTests, p.results, pat?.sex);
   let cid: string | null = null;
   if (user) { const { data: pr } = await s.from('profiles').select('clinic_id').eq('id', user.id).single(); cid = pr?.clinic_id ?? null; }
+  if (!cid) throw new Error('User clinic not configured. Cannot create report.');
   const { data, error } = await s.from('lab_reports').insert({ clinic_id: cid, patient_id: p.patientId, tests, notes: p.notes ?? null, referred_by: p.referredBy ?? null, status: 'pending' }).select().single();
   if (error) throw new Error(`Failed to create report: ${error.message}`);
   invalidateTestCatalog();
@@ -156,6 +159,7 @@ export async function updateReport(id: string, u: { tests?: SelectedTest[]; stat
   const s = createSupabaseBrowserClient();
   const d: Record<string,unknown> = { ...u };
   if (u.status === 'completed') d.completed_at = new Date().toISOString();
+  else if (u.status === 'pending') d.completed_at = null;
   const { data, error } = await s.from('lab_reports').update(d).eq('id', id).select().single();
   if (error) throw new Error(`Failed to update report: ${error.message}`);
   return data;
@@ -200,7 +204,7 @@ function mergeSnap(snap: TestCatalog|undefined, cat: TestCatalog|undefined, para
         if (p.unit && p.normal_range) return p; // already complete
         const fresh = paramByName.get(nkey(p.name));
         if (!fresh) return p;
-        return { ...fresh, ...p, unit: (p.unit || fresh.unit) ?? '', normal_range: (p.normal_range || fresh.normal_range) ?? '—' };
+        return { ...fresh, ...p, unit: (p.unit || fresh.unit) ?? '', normal_range: (p.normal_range || fresh.normal_range) ?? '\u2014' };
       }),
     };
   }
@@ -210,7 +214,7 @@ function mergeSnap(snap: TestCatalog|undefined, cat: TestCatalog|undefined, para
   const cpNm = new Map(cp.map(p => [nkey(p.name), p]));
   const merged = sp.length ? sp.map(p => {
     const c = cpId.get(p.id) ?? cpNm.get(nkey(p.name));
-    return { ...(c ?? {}), ...p, unit: (p.unit || c?.unit) ?? '', normal_range: (p.normal_range || c?.normal_range) ?? '—', male_normal_range: p.male_normal_range ?? c?.male_normal_range, female_normal_range: p.female_normal_range ?? c?.female_normal_range };
+    return { ...(c ?? {}), ...p, unit: (p.unit || c?.unit) ?? '', normal_range: (p.normal_range || c?.normal_range) ?? '\u2014', male_normal_range: p.male_normal_range ?? c?.male_normal_range, female_normal_range: p.female_normal_range ?? c?.female_normal_range };
   }) : cp;
   return normalizeTestCatalogEntry({ ...snap, ...cat, parameters: merged });
 }

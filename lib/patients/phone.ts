@@ -16,8 +16,7 @@ export function normalizePatientPhone(rawPhone: string | null | undefined): stri
 
 export function isValidPatientPhone(rawPhone: string | null | undefined): boolean {
   try {
-    normalizePatientPhone(rawPhone);
-    return true;
+    return normalizePatientPhone(rawPhone) !== null;
   } catch {
     return false;
   }

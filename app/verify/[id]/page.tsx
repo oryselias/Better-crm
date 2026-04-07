@@ -157,7 +157,7 @@ export default async function VerifyReportPage({ params }: VerifyPageProps) {
 
         {/* Branding */}
         <p className="text-center text-xs text-gray-400 mt-4">
-          © {new Date().getFullYear()} Better CRM
+          &copy; {new Date().getFullYear()} Better CRM
         </p>
       </div>
     </div>
@@ -168,7 +168,14 @@ function formatAge(dateOfBirth: string | null): string {
   if (!dateOfBirth) return "N/A";
   const dob = new Date(dateOfBirth);
   const today = new Date();
-  const years = today.getFullYear() - dob.getFullYear();
-  if (years === 0) return `${today.getMonth() - dob.getMonth()}M`;
-  return `${years}Y`;
+  let years = today.getFullYear() - dob.getFullYear();
+  const birthdayPassedThisYear =
+    today.getMonth() > dob.getMonth() ||
+    (today.getMonth() === dob.getMonth() && today.getDate() >= dob.getDate());
+  if (!birthdayPassedThisYear) years--;
+  if (years > 0) return `${years}Y`;
+  let months = today.getMonth() - dob.getMonth();
+  if (today.getDate() < dob.getDate()) months--;
+  if (months < 0) months += 12;
+  return `${months}M`;
 }

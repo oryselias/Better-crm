@@ -24,7 +24,7 @@ export async function createPatient(formData: FormData) {
     full_name: formData.get("full_name") as string,
     date_of_birth: (formData.get("date_of_birth") as string) || null,
     sex: (formData.get("sex") as string) || null,
-    phone: normalizePatientPhone(formData.get("phone") as string),
+    phone: normalizePatientPhone(typeof formData.get("phone") === "string" ? formData.get("phone") as string : null),
     created_by: user.id,
   });
 

@@ -1,5 +1,6 @@
 import { User } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { NewPatientDialog } from "@/components/patients/new-patient-dialog";
@@ -22,6 +23,9 @@ export default async function PatientsPage({
 }) {
   const { q } = await searchParams;
   const supabase = await createSupabaseServerClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
   let query = supabase
     .from("patients")
@@ -91,7 +95,7 @@ export default async function PatientsPage({
                             {patient.full_name}
                           </p>
                           <p className="text-xs text-on-surface-variant">
-                            {patient.date_of_birth ?? "No DOB"} • {patient.sex ?? "Unknown"}
+                            {patient.date_of_birth ?? "No DOB"} &bull; {patient.sex ?? "Unknown"}
                           </p>
                         </div>
                       </div>
