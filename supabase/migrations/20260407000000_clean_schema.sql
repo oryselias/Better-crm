@@ -3,11 +3,11 @@
 -- Single source of truth. Replaces all prior incremental migrations.
 -- ============================================================
 
--- ── Extensions ───────────────────────────────────────────────────────────────
+-- ── Extensions ───────────────────────────────────────────────────────────────────────────────
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
--- ── Tables ───────────────────────────────────────────────────────────────────
+-- ── Tables ───────────────────────────────────────────────────────────────────────────────────
 
 CREATE TABLE public.clinics (
   id         uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -48,7 +48,7 @@ CREATE TABLE public.test_catalog (
   parameters  jsonb   NOT NULL DEFAULT '[]',
   description text,
   is_active   boolean NOT NULL DEFAULT true,
-  price       numeric(10,2) NOT NULL DEFAULT 0,
+  price       numeric(10,2) NOT NULL DEFAULT 0 CHECK (price >= 0),
   created_at  timestamptz NOT NULL DEFAULT timezone('utc', now()),
   updated_at  timestamptz NOT NULL DEFAULT timezone('utc', now()),
   CONSTRAINT test_catalog_code_unique UNIQUE (code)
@@ -70,7 +70,7 @@ CREATE TABLE public.lab_reports (
   report_no    int,
   status       text    NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'completed')),
   tests        jsonb   NOT NULL DEFAULT '[]',
-  discount     numeric(5,2)  NOT NULL DEFAULT 0,
+  discount     numeric(5,2)  NOT NULL DEFAULT 0 CHECK (discount BETWEEN 0 AND 100),
   total_amount numeric(10,2),
   final_amount numeric(10,2),
   notes        text,
@@ -78,10 +78,14 @@ CREATE TABLE public.lab_reports (
   created_by   uuid    REFERENCES public.profiles (id) ON DELETE SET NULL,
   completed_at timestamptz,
   created_at   timestamptz NOT NULL DEFAULT timezone('utc', now()),
-  updated_at   timestamptz NOT NULL DEFAULT timezone('utc', now())
+  updated_at   timestamptz NOT NULL DEFAULT timezone('utc', now()),
+  CONSTRAINT lab_reports_clinic_report_no_unique UNIQUE (clinic_id, report_no)
 );
 
--- ── Functions ─────────────────────────────────────────────────────────────────
+-- Index on patient_id for efficient joins
+CREATE INDEX lab_reports_patient_id_idx ON public.lab_reports (patient_id);
+
+-- ── Functions ─────────────────────────────────────────────────────────────────────────────────
 
 CREATE OR REPLACE FUNCTION public.touch_updated_at()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
@@ -105,6 +109,8 @@ $$;
 CREATE OR REPLACE FUNCTION public.assign_report_no()
 RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
+  -- Advisory lock per clinic to serialize concurrent inserts
+  PERFORM pg_advisory_xact_lock(hashtext('assign_report_no:' || NEW.clinic_id::text));
   SELECT COALESCE(MAX(report_no), 0) + 1
   INTO   NEW.report_no
   FROM   public.lab_reports
@@ -141,7 +147,7 @@ BEGIN
 END;
 $$;
 
--- ── Triggers ──────────────────────────────────────────────────────────────────
+-- ── Triggers ────────────────────────────────────────────────────────────────────────────────
 
 CREATE TRIGGER touch_clinics_updated_at
   BEFORE UPDATE ON public.clinics
@@ -177,7 +183,7 @@ CREATE TRIGGER compute_lab_report_amounts
   BEFORE INSERT OR UPDATE OF tests, discount ON public.lab_reports
   FOR EACH ROW EXECUTE FUNCTION public.compute_report_amounts();
 
--- ── Indexes ───────────────────────────────────────────────────────────────────
+-- ── Indexes ─────────────────────────────────────────────────────────────────────────────────
 
 CREATE INDEX patients_clinic_id_idx            ON public.patients (clinic_id);
 CREATE INDEX lab_reports_clinic_id_idx         ON public.lab_reports (clinic_id);
@@ -187,7 +193,7 @@ CREATE INDEX test_catalog_code_idx             ON public.test_catalog (code);
 CREATE INDEX clinic_test_prices_clinic_id_idx  ON public.clinic_test_prices (clinic_id);
 CREATE INDEX clinic_test_prices_test_id_idx    ON public.clinic_test_prices (test_id);
 
--- ── Grants ────────────────────────────────────────────────────────────────────
+-- ── Grants ──────────────────────────────────────────────────────────────────────────────────
 
 GRANT USAGE ON SCHEMA public TO anon, authenticated;
 
@@ -198,12 +204,20 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.lab_reports        TO authenticat
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.test_catalog       TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.clinic_test_prices TO authenticated;
 
--- anon grants for public /verify page
-GRANT SELECT ON public.clinics     TO anon;
-GRANT SELECT ON public.patients    TO anon;
-GRANT SELECT ON public.lab_reports TO anon;
+-- anon: expose only a scoped verify RPC instead of raw table grants
+CREATE OR REPLACE FUNCTION public.verify_report(p_report_id uuid)
+RETURNS TABLE (report_no int, patient_name text, status text, created_at timestamptz)
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT lr.report_no, pt.full_name, lr.status, lr.created_at
+  FROM   public.lab_reports lr
+  JOIN   public.patients pt ON pt.id = lr.patient_id
+  WHERE  lr.id = p_report_id;
+$$;
+GRANT EXECUTE ON FUNCTION public.verify_report(uuid) TO anon;
 
--- ── Row Level Security ────────────────────────────────────────────────────────
+GRANT SELECT ON public.clinics TO anon;
+
+-- ── Row Level Security ───────────────────────────────────────────────────────────────────────
 
 ALTER TABLE public.clinics             ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profiles            ENABLE ROW LEVEL SECURITY;
@@ -228,8 +242,8 @@ CREATE POLICY "Users can read own profile"
   USING (id = auth.uid());
 
 CREATE POLICY "Users can insert own profile"
-  ON public.profiles FOR INSERT TO authenticated
-  WITH CHECK (id = auth.uid());
+  ON public.profiles FOR INSERT TO service_role
+  WITH CHECK (true);
 
 CREATE POLICY "Users can update own profile"
   ON public.profiles FOR UPDATE TO authenticated
@@ -254,10 +268,7 @@ CREATE POLICY "Clinic members can delete patients"
   ON public.patients FOR DELETE TO authenticated
   USING (public.has_clinic_access(clinic_id));
 
--- patients — anon verify
-CREATE POLICY "Public can read patient info for verification"
-  ON public.patients FOR SELECT TO anon
-  USING (true);
+-- patients — anon verify removed in favour of verify_report RPC (SECURITY DEFINER)
 
 -- lab_reports
 CREATE POLICY "Clinic members can read reports"
@@ -277,26 +288,23 @@ CREATE POLICY "Clinic members can delete reports"
   ON public.lab_reports FOR DELETE TO authenticated
   USING (public.has_clinic_access(clinic_id));
 
--- lab_reports — anon verify
-CREATE POLICY "Public can verify reports by ID"
-  ON public.lab_reports FOR SELECT TO anon
-  USING (true);
+-- lab_reports — anon verify removed in favour of verify_report RPC (SECURITY DEFINER)
 
 -- test_catalog (global, shared across all clinics)
 CREATE POLICY "Test catalog readable by authenticated users"
   ON public.test_catalog FOR SELECT TO authenticated
   USING (true);
 
-CREATE POLICY "Test catalog insertable by authenticated users"
-  ON public.test_catalog FOR INSERT TO authenticated
+CREATE POLICY "Test catalog insertable by service role"
+  ON public.test_catalog FOR INSERT TO service_role
   WITH CHECK (true);
 
-CREATE POLICY "Test catalog updatable by authenticated users"
-  ON public.test_catalog FOR UPDATE TO authenticated
+CREATE POLICY "Test catalog updatable by service role"
+  ON public.test_catalog FOR UPDATE TO service_role
   USING (true) WITH CHECK (true);
 
-CREATE POLICY "Test catalog deletable by authenticated users"
-  ON public.test_catalog FOR DELETE TO authenticated
+CREATE POLICY "Test catalog deletable by service role"
+  ON public.test_catalog FOR DELETE TO service_role
   USING (true);
 
 -- clinic_test_prices
