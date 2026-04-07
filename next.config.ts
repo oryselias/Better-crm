@@ -1,10 +1,12 @@
 import type { NextConfig } from "next";
 
-const isDev = process.env.NODE_ENV === "development";
-
 const nextConfig: NextConfig = {
-  // Double-renders every component in dev — disable to halve memory pressure
-  reactStrictMode: !isDev,
+  // StrictMode helps catch bugs during development via double-rendering.
+  // It has zero runtime effect in production.
+  reactStrictMode: true,
+  // Keep pdfkit out of the webpack bundle so its font .afm files and fs calls
+  // work via native node require at runtime.
+  serverExternalPackages: ["pdfkit"],
 };
 
 export default nextConfig;

@@ -1,0 +1,33 @@
+{
+  "email": "routecheck@bettercrm.local",
+  "password": "RouteCheck123!",
+  "clinicSlug": "better-crm-e2e",
+  "clinicId": "2f041dcd-fb7a-4ee2-a7b6-f370c9361888",
+  "patientId": "a7ce4694-aa22-4d8c-99f6-45cd9fc84acd",
+  "patientName": "E2E Seed Patient",
+  "reportId": "3bb80002-0c42-4bd1-8d02-51784a2142b5",
+  "reportNo": 8,
+  "tests": [
+    {
+      "id": "cc49019a-9824-4e65-a061-291e6f40533b",
+      "code": "E2E-CBC",
+      "name": "E2E Complete Blood Count",
+      "category": "Hematology",
+      "price": 450
+    },
+    {
+      "id": "7f2a0481-32f0-460f-ae32-f8ce1522f5dd",
+      "code": "E2E-FBS",
+      "name": "E2E Fasting Blood Sugar",
+      "category": "Biochemistry",
+      "price": 180
+    },
+    {
+      "id": "73cdcfbf-6df5-4142-b6cd-8e92aae1e046",
+      "code": "E2E-UR",
+      "name": "E2E Urine Routine",
+      "category": "Clinical Pathology",
+      "price": 220
+    }
+  ]
+}

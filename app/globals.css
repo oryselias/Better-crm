@@ -1,56 +1,77 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #121315;
-  --color-surface: #121315;
-  --color-surface-dim: #121315;
-  --color-surface-bright: #38393a;
+  /* ── Surfaces ─────────────────────────────────────── */
+  --color-background: #f2f5f8;
+  --color-surface: #ffffff;
+  --color-surface-dim: #e8ecf2;
+  --color-surface-bright: #ffffff;
 
-  --color-surface-container-lowest: #0d0e0f;
-  --color-surface-container-low: #1b1c1d;
-  --color-surface-container: #1f2021;
-  --color-surface-container-high: #292a2b;
-  --color-surface-container-highest: #343536;
-  --color-surface-lowest: #0d0e0f;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f7f9fb;
+  --color-surface-container: #eef1f6;
+  --color-surface-container-high: #e5eaef;
+  --color-surface-container-highest: #dce2e9;
+  --color-surface-lowest: #f7f9fb;
 
-  --color-on-background: #e3e2e3;
-  --color-on-surface: #e3e2e3;
-  --color-on-surface-variant: #b9cacb;
-  --color-outline: #849495;
-  --color-outline-variant: #3a494b;
+  /* ── Content ──────────────────────────────────────── */
+  --color-on-background: #191c1f;
+  --color-on-surface: #191c1f;
+  --color-on-surface-variant: #47535c;
+  --color-outline: #7a8d97;
+  --color-outline-variant: #c6d2da;
 
-  --color-primary: #e1fdff;
-  --color-on-primary: #00363a;
-  --color-primary-container: #00f2ff;
-  --color-on-primary-container: #006a71;
+  /* ── Primary — Teal / Cyan ────────────────────────── */
+  --color-primary: #0891b2;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #cffafe;
+  --color-on-primary-container: #155e75;
 
-  --color-secondary: #d7ffc5;
-  --color-on-secondary: #053900;
-  --color-secondary-container: #2ff801;
-  --color-on-secondary-container: #0f6d00;
+  /* ── Secondary — Emerald ─────────────────────────── */
+  --color-secondary: #059669;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #d1fae5;
+  --color-on-secondary-container: #064e3b;
 
-  --color-tertiary: #fff4f9;
-  --color-on-tertiary: #5b005b;
-  --color-tertiary-container: #ffcbf4;
-  --color-on-tertiary-container: #ab00aa;
+  /* ── Tertiary — Violet ───────────────────────────── */
+  --color-tertiary: #7c3aed;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #ede9fe;
+  --color-on-tertiary-container: #4c1d95;
 
-  --color-error: #ffb4ab;
-  --color-on-error: #690005;
-  --color-error-container: #93000a;
-  --color-on-error-container: #ffdad6;
+  /* ── Error ───────────────────────────────────────── */
+  --color-error: #dc2626;
+  --color-on-error: #ffffff;
+  --color-error-container: #fee2e2;
+  --color-on-error-container: #7f1d1d;
 
-  /* Fonts */
-  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-display: var(--font-heading), ui-sans-serif, system-ui, sans-serif;
+  /* ── Semantic Status ─────────────────────────────── */
+  --color-success: #16a34a;
+  --color-success-container: #dcfce7;
+  --color-on-success-container: #14532d;
+  --color-warning: #d97706;
+  --color-warning-container: #fef3c7;
+  --color-on-warning-container: #78350f;
+  --color-info: #2563eb;
+  --color-info-container: #dbeafe;
+  --color-on-info-container: #1e3a8a;
 
-  /* Ambient glow utility variables */
-  --shadow-ambient: 0 0 60px rgba(0, 219, 231, 0.08);
-  /* surface_tint #00dbe7 glow */
+  /* ── Fonts ───────────────────────────────────────── */
+  --font-sans:
+    ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji";
+  --font-display: ui-sans-serif, system-ui, sans-serif;
+
+  /* ── Shadows ─────────────────────────────────────── */
+  --shadow-card: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-card-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-ambient: 0 0 0 1px rgba(8, 145, 178, 0.06);
 }
 
-/* Global resets & base apply */
+/* ── Base ──────────────────────────────────────────────── */
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 * {
@@ -63,7 +84,6 @@ html {
 
 body {
   min-height: 100vh;
-  /* Deep Dark Foundation */
   background: var(--color-background);
   color: var(--color-on-surface);
   font-family: var(--font-sans);
@@ -75,7 +95,7 @@ a {
 }
 
 ::selection {
-  background: rgba(0, 242, 255, 0.2);
+  background: rgba(8, 145, 178, 0.15);
 }
 
 h1,
@@ -87,112 +107,92 @@ h6 {
   font-family: var(--font-display);
 }
 
-/* Primary Glass Module ( surface-container-high over surface ) */
+/* ── Surface Card ──────────────────────────────────────── */
+/* Clean white card with subtle border, grounded (no float) */
 .surface {
-  background: rgba(41, 42, 43, 0.35);
-  /* lighter opacity to let blur through */
-  backdrop-filter: blur(48px) saturate(130%);
-  -webkit-backdrop-filter: blur(48px) saturate(130%);
-  box-shadow: var(--shadow-ambient);
-  border: 1px solid rgba(58, 73, 75, 0.10);
-  /* Even subtler ghost border */
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-surface-container-highest);
   position: relative;
   overflow: hidden;
 }
 
-/* Subtle noise texture overlay for the surface */
-.surface::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  opacity: 0.03;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.surface>* {
-  position: relative;
-  z-index: 1;
-}
-
+/* ── Surface Lowest ────────────────────────────────────── */
+/* For input backgrounds, table headers, secondary containers */
 .surface-lowest {
-  background: rgba(13, 14, 15, 0.7);
-  backdrop-filter: blur(32px);
-  -webkit-backdrop-filter: blur(32px);
-  border-bottom: 1px solid rgba(58, 73, 75, 0.15);
-  /* Sleek bottom ghost border */
-  transition: all 0.3s ease;
+  background: var(--color-surface-lowest);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
 }
 
 .surface-lowest:focus-within {
-  border-bottom: 1px solid var(--color-primary-container);
-  box-shadow: 0 4px 20px -5px rgba(0, 242, 255, 0.2);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
 }
 
+/* ── Typography Utilities ──────────────────────────────── */
 .eyebrow {
   color: var(--color-on-surface-variant);
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   font-family: var(--font-display);
 }
 
-/* Primary Button action with aesthetic linear gradient */
+/* ── Primary Button ────────────────────────────────────── */
 .btn-primary {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-container));
+  background: var(--color-primary);
   color: var(--color-on-primary);
-  border-radius: 0.375rem;
-  font-weight: 600;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border-radius: 0.375rem; /* rounded-md */
+  font-weight: 500;
+  transition: background-color 0.15s ease-in-out;
   position: relative;
   overflow: hidden;
+  border: 1px solid transparent;
 }
 
 .btn-primary:hover {
-  filter: brightness(1.15);
-  box-shadow: 0 0 24px rgba(0, 242, 255, 0.5);
-  transform: translateY(-1px);
+  background: #0e7490;
 }
 
 .btn-primary:active {
-  transform: translateY(1px);
+  background: #155e75;
 }
 
-/* Animations */
-@keyframes fadeSlideIn {
-  0% {
+/* ── Animations ────────────────────────────────────────── */
+@keyframes fade-slide-in {
+  from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
-
-  100% {
+  to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
 .animate-fade-in {
-  animation: fadeSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fade-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-@keyframes skeletonShimmer {
+@keyframes skeleton-shimmer {
   0% {
     background-position: -200% 0;
   }
-
   100% {
     background-position: 200% 0;
   }
 }
 
 .skeleton {
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 25%, rgba(0, 242, 255, 0.05) 50%, rgba(255, 255, 255, 0.03) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-container-low) 25%,
+    var(--color-surface-container) 50%,
+    var(--color-surface-container-low) 75%
+  );
   background-size: 200% 100%;
-  animation: skeletonShimmer 2s infinite linear;
+  animation: skeleton-shimmer 1.8s infinite linear;
   border-radius: 4px;
 }

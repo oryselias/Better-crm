@@ -1,0 +1,28 @@
+{
+  "lint": {
+    "exclude": [
+      "app/",
+      "components/",
+      "lib/",
+      "types/",
+      "scripts/",
+      "tests/",
+      "node_modules/",
+      ".next/",
+      "output/"
+    ]
+  },
+  "test": {
+    "exclude": [
+      "app/",
+      "components/",
+      "lib/",
+      "types/",
+      "scripts/",
+      "tests/",
+      "node_modules/",
+      ".next/",
+      "output/"
+    ]
+  }
+}

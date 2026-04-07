@@ -111,14 +111,14 @@ export function LoginForm({ disabled = false }: LoginFormProps) {
 
   if (signupSuccess) {
     return (
-      <div className="rounded-2xl border border-primary-container/20 bg-primary-container/10 px-5 py-6 text-sm leading-7 text-on-surface">
-        <p className="font-semibold text-primary-container">Check your email</p>
+      <div className="rounded-2xl border border-primary/20 bg-primary-container px-5 py-6 text-sm leading-7 text-on-surface">
+        <p className="font-semibold text-primary">Check your email</p>
         <p className="mt-1 text-on-surface-variant">
           We sent a confirmation link to <span className="font-medium text-on-surface">{email}</span>.
           Click it to activate your account, then{" "}
           <button
             type="button"
-            className="font-semibold text-primary-container underline"
+            className="font-semibold text-primary underline"
             onClick={() => switchMode("signin")}
           >
             sign in here
@@ -134,7 +134,8 @@ export function LoginForm({ disabled = false }: LoginFormProps) {
       <button
         type="button"
         onClick={handleGoogleSignIn}
-        className="inline-flex w-full items-center justify-center rounded-2xl border border-outline-variant/30 bg-surface-container px-4 py-3 text-sm font-semibold transition hover:border-primary-container hover:text-primary-container disabled:cursor-not-allowed disabled:opacity-50"
+        data-testid="login-google-button"
+        className="inline-flex w-full items-center justify-center rounded-2xl border border-outline-variant/30 bg-surface-container px-4 py-3 text-sm font-semibold transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
         disabled={pending || disabled}
       >
         {pendingMode === "google"
@@ -154,7 +155,8 @@ export function LoginForm({ disabled = false }: LoginFormProps) {
         <label className="block space-y-2">
           <span className="text-sm font-medium">Email</span>
           <input
-            className="w-full rounded-2xl border border-outline-variant/30 bg-surface-container-low px-4 py-3 outline-none transition focus:border-primary-container focus:ring-2 focus:ring-primary-container/15"
+            data-testid="login-email-input"
+            className="w-full rounded-2xl border border-outline-variant/30 bg-surface-container-low px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
             type="email"
             placeholder="clinician@bettercrm.app"
             value={email}
@@ -167,7 +169,8 @@ export function LoginForm({ disabled = false }: LoginFormProps) {
         <label className="block space-y-2">
           <span className="text-sm font-medium">Password</span>
           <input
-            className="w-full rounded-2xl border border-outline-variant/30 bg-surface-container-low px-4 py-3 outline-none transition focus:border-primary-container focus:ring-2 focus:ring-primary-container/15"
+            data-testid="login-password-input"
+            className="w-full rounded-2xl border border-outline-variant/30 bg-surface-container-low px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
             type="password"
             placeholder={mode === "signup" ? "Create a password (min 6 chars)" : "Enter your password"}
             value={password}
@@ -180,6 +183,7 @@ export function LoginForm({ disabled = false }: LoginFormProps) {
 
         <button
           type="submit"
+          data-testid="login-submit-button"
           className="btn-primary inline-flex w-full items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
           disabled={pending || disabled}
         >
@@ -190,7 +194,10 @@ export function LoginForm({ disabled = false }: LoginFormProps) {
       </form>
 
       {error ? (
-        <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+        <div
+          data-testid="login-error"
+          className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400"
+        >
           {error}
         </div>
       ) : null}
@@ -201,7 +208,7 @@ export function LoginForm({ disabled = false }: LoginFormProps) {
             No account?{" "}
             <button
               type="button"
-              className="font-semibold text-primary-container"
+              className="font-semibold text-primary"
               onClick={() => switchMode("signup")}
             >
               Create one
@@ -212,7 +219,7 @@ export function LoginForm({ disabled = false }: LoginFormProps) {
             Already have an account?{" "}
             <button
               type="button"
-              className="font-semibold text-primary-container"
+              className="font-semibold text-primary"
               onClick={() => switchMode("signin")}
             >
               Sign in

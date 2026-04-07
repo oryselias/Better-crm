@@ -51,9 +51,20 @@ async function sendWhatsAppMessage(
 }
 
 Deno.serve(async (req: Request) => {
-  // Only allow POST
   if (req.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 })
+  }
+
+  // Guard: require shared secret so arbitrary callers can't trigger bulk sends.
+  const fnSecret = Deno.env.get('FUNCTION_SECRET')
+  if (fnSecret) {
+    const auth = req.headers.get('Authorization') ?? ''
+    const token = auth.startsWith('Bearer ') ? auth.slice(7) : ''
+    if (token !== fnSecret) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { 'Content-Type': 'application/json' },
+      })
+    }
   }
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!

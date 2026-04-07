@@ -21,12 +21,12 @@ New-Item -ItemType Directory -Force $qmdRoot | Out-Null
 New-Item -ItemType Directory -Force $configDir | Out-Null
 
 $escapedRepoRoot = $repoRoot.Replace('\', '/')
-@"
+$newConfig = @"
 global_context: |
-  Better CRM is a markdown-first product workspace for an AI-first health CRM and lab information system.
-  Prioritize architecture notes, ADRs, schema design, security boundaries, and implementation plans.
+  Better CRM is a lightweight multi-clinic lab report generator for lab assistants.
+  Prioritize patient registration, test catalog, report generation, PDF flows, schema design, and clinic-scoped access control.
 collections:
-  health-crm:
+  better-crm:
     path: "$escapedRepoRoot"
     pattern: "**/*.{ts,tsx,js,jsx,md,json,html,css,yml,sql,toml}"
     ignore:
@@ -37,10 +37,25 @@ collections:
       - ".qmd/**"
       - ".tools/**"
       - ".env*.local"
+      - "output/**"
+      - "TEST-DATA/**"
+      - ".playwright-cli/**"
+      - "scripts/e2e/**"
+      - "coverage/**"
+      - "public/**"
+      - "**/*.lock"
+      - "**/*.sqlite"
+      - "**/*.sqlite-wal"
+      - "**/*.sqlite-shm"
+      - "supabase/.temp/**"
     context:
-      "/": "Lean repo context: app shell, rules, migrations, and implementation history."
-      "/docs": "Second-brain knowledge vault for product, schema, prompts, operations, and integrations. Retrieve on demand."
-"@ | Set-Content -Path $configPath -Encoding UTF8
+      "/": "Lean repo context: app shell, AGENTS rules, migrations, and the current lab workflow implementation."
+      "/docs": "Project knowledge base for product scope, schema, architecture, operations, and tooling guidance."
+"@
+$existingConfig = if (Test-Path $configPath) { Get-Content -Path $configPath -Raw -ErrorAction SilentlyContinue } else { $null }
+if ($newConfig -ne $existingConfig) {
+  $newConfig | Set-Content -Path $configPath -Encoding UTF8
+}
 
 $env:INDEX_PATH = $indexPath
 $env:QMD_CONFIG_DIR = $configDir

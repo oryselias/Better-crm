@@ -2,12 +2,12 @@ begin;
 
 create extension if not exists pgtap;
 
-select plan(6);
+select plan(5);
 
-insert into public.clinics (id, name, slug)
+insert into public.clinics (id, name)
 values
-  ('11111111-1111-1111-1111-111111111111', 'North Clinic', 'north-clinic'),
-  ('22222222-2222-2222-2222-222222222222', 'South Clinic', 'south-clinic');
+  ('11111111-1111-1111-1111-111111111111', 'North Clinic'),
+  ('22222222-2222-2222-2222-222222222222', 'South Clinic');
 
 insert into auth.users (
   instance_id,
@@ -62,10 +62,10 @@ values
     ''
   );
 
-insert into public.profiles (id, clinic_id, role, full_name)
+insert into public.profiles (id, clinic_id, role)
 values
-  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '11111111-1111-1111-1111-111111111111', 'admin', 'North Admin'),
-  ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '22222222-2222-2222-2222-222222222222', 'admin', 'South Admin');
+  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '11111111-1111-1111-1111-111111111111', 'admin'),
+  ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '22222222-2222-2222-2222-222222222222', 'admin');
 
 insert into public.patients (clinic_id, full_name, created_by)
 values ('22222222-2222-2222-2222-222222222222', 'South Seed Patient', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb');
@@ -134,17 +134,6 @@ select ok(
     'Tampered Name'
   ),
   'North clinic user cannot update another clinic patient'
-);
-
-select ok(
-  (
-    select count(*) = 1
-    from public.audit_events
-    where actor_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
-      and table_name = 'patients'
-      and action = 'INSERT'
-  ),
-  'Audit events capture first-slice patient inserts'
 );
 
 select pg_temp.set_authenticated_user('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb');

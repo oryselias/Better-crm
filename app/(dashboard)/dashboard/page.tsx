@@ -1,8 +1,5 @@
-import { getDashboardSnapshot } from "@/lib/dashboard";
-import { RealtimeDashboard } from "./realtime-dashboard";
+import { LabDashboard } from "./realtime-dashboard";
 
-export default async function DashboardPage() {
-  const snapshot = await getDashboardSnapshot();
-
-  return <RealtimeDashboard initialSnapshot={snapshot} />;
+export default function DashboardPage() {
+  return <LabDashboard />;
 }

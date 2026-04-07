@@ -1,75 +1,135 @@
 # Architecture
 
-## Database Schema
+## Stack
+- **Framework:** Next.js 14+ App Router (TypeScript)
+- **Styling:** Tailwind CSS v4 (custom design system in `globals.css`)
+- **Database:** Supabase (Postgres + Auth + RLS + Storage)
+- **PDF:** PDFKit (server-side, via Next.js API route)
 
-### Core Tables
+## Core Tables
 
-```
-clinics
-├── id (UUID, PK)
-├── name
-├── created_at
-└── updated_at
+| Table | Purpose |
+|---|---|
+| `clinics` | Each clinic is a tenant |
+| `profiles` | Maps auth users to clinics with role |
+| `patients` | Patient records (name, dob, sex, phone) |
+| `test_catalog` | Clinic-specific tests with parameters and pricing |
+| `lab_reports` | Report records with `tests` JSONB (SelectedTest[]) |
+| `appointments` | Appointment scheduling |
+| `billing` | Billing and payments |
+| `audit_events` | Audit logging for compliance |
 
-profiles (extends auth.users)
-├── id (UUID, PK, FK → auth.users)
-├── clinic_id (FK → clinics)
-├── role (admin/staff)
-└── created_at
+## Access Control
+- RLS on all tables — every row is scoped to `clinic_id`
+- `current_clinic_id()` SQL function reads the user's profile
+- All queries automatically scoped to the logged-in user's clinic
 
-patients
-├── id (UUID, PK)
-├── clinic_id (FK → clinics)
-├── name
-├── email
-├── phone
-├── date_of_birth
-├── created_at
-└── updated_at
+## PDF Generation
+- **Trigger:** GET to `/api/reports/[id]/pdf`
+- **Generator:** `lib/reports/pdf-generator.ts` using PDFKit
+- **Output:** Per-parameter rows grouped by test name; abnormal results in red/bold
+- **Usage:** Report detail page downloads and prints the generated PDF directly
 
-appointments
-├── id (UUID, PK)
-├── patient_id (FK → patients)
-├── clinic_id (FK → clinics)
-├── scheduled_at
-├── status (scheduled/completed/cancelled)
-├── notes
-└── created_at
-
-lab_reports
-├── id (UUID, PK)
-├── patient_id (FK → patients)
-├── clinic_id (FK → clinics)
-├── original_file (storage ref)
-├── parsed_data (JSONB)
-├── review_status (pending/reviewed)
-├── reviewed_by (FK → profiles)
-├── created_at
-└── updated_at
-
-audit_events
-├── id (UUID, PK)
-├── clinic_id (FK → clinics)
-├── profile_id (FK → profiles)
-├── action (created/updated/deleted)
-├── table_name
-├── record_id
-├── old_data (JSONB)
-├── new_data (JSONB)
-└── created_at
+## Report JSONB Structure
+Each `lab_reports.tests` row is `SelectedTest[]`:
+```ts
+{
+  testId: string;
+  test: TestCatalog;   // embedded snapshot at time of report
+  price: number;
+  results: {
+    parameterId: string;
+    value: string | number;
+    isAbnormal: boolean;
+  }[];
+}
 ```
 
-## Security
+---
 
-### Row Level Security (RLS)
+## What's Built ✅
 
-All tables have RLS enabled:
-- Users can only see data for their clinic
-- Admins can manage clinic staff
-- All mutations emit audit events
+### Pages & Routes
+| Path | Status | Notes |
+|------|--------|-------|
+| `/login` | ✅ | Auth page |
+| `/onboarding` | ✅ | Clinic setup for new users |
+| `/dashboard` | ✅ | Main dashboard with stats |
+| `/patients` | ✅ | Patient list + add patient dialog |
+| `/patients/[id]` | ✅ | Patient detail view |
+| `/lab-report` | ✅ | Reports list |
+| `/lab-report/new` | ✅ | 3-step wizard |
+| `/lab-report/[id]` | ✅ | View/edit report + PDF download |
+| `/verify/[id]` | ✅ | Public report verification |
+| `/setup/supabase` | ✅ | Supabase setup page |
+| `/appointments` | ⚠️ | Stub (redirects to dashboard) |
+| `/billing` | ⚠️ | Stub (redirects to dashboard) |
+| `/audit` | ⚠️ | Stub (redirects to dashboard) |
+| `/test-catalog` | ❌ | Not yet built |
 
-## See Also
+### Core Features
+- [x] Supabase auth + RLS
+- [x] Patient CRUD
+- [x] Lab report creation (3-step wizard)
+- [x] Report PDF generation (PDFKit)
+- [x] Public report verification
+- [x] Dashboard with recent reports
+- [x] Clinic onboarding flow
 
-- [[Project Overview]]
-- [[Tech Stack]]
-- [[Current Tasks]]
+### Database
+- [x] 20+ migrations applied
+- [x] RLS policies on all tables
+- [x] Clinic-scoped data isolation
+- [x] Test catalog with parameters & pricing
+- [x] Reference ranges per parameter
+
+### API
+- [x] `/api/reports/[id]/pdf` - PDF generation endpoint
+
+---
+
+## What's Left ⏳
+
+### High Priority
+| Task | Agent |
+|------|-------|
+| Build `/test-catalog` page | Kilo |
+| Implement appointments feature | Kilo |
+| Implement billing feature | Kilo |
+| Implement audit log viewer | Kilo |
+| Fix RLS issues on verify endpoint | Antigravity |
+
+### Medium Priority
+| Task | Agent |
+|------|-------|
+| Add patient search/filter | Kilo |
+| Add report filters (date, status) | Kilo |
+| Add report status workflow (Draft → Verified) | Kilo |
+| Clinic branding (logo, colors) | Kilo |
+
+### Lower Priority
+| Task | Agent |
+|------|-------|
+| Add report archiving | Kilo |
+| Add data export (CSV) | Kilo |
+| Improve dashboard charts | Kilo |
+
+---
+
+## App Routes
+```
+/login              → Auth page ✅
+/onboarding         → Clinic setup ✅
+/dashboard          → Main dashboard ✅
+/patients           → Patient list ✅
+/patients/[id]      → Patient detail ✅
+/lab-report         → Reports list ✅
+/lab-report/new     → 3-step wizard ✅
+/lab-report/[id]    → View/edit + PDF ✅
+/verify/[id]       → Public verification ✅
+/appointments      → Appointment scheduling ⚠️ (stub)
+/billing            → Billing and payments ⚠️ (stub)
+/audit              → Audit log ⚠️ (stub)
+/test-catalog      → Test catalog management ❌ (not built)
+/setup/supabase    → Supabase setup ✅
+```

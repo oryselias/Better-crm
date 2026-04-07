@@ -1,6 +1,7 @@
 # Agent / AI tool config (never commit)
 .agents/
 .codex/
+.codex-home/
 .clinerules
 .mcp.json
 .mcp-stacks/
@@ -11,6 +12,14 @@
 .qmd/
 .smart-env/
 .tools/
+.kilocode/
+.kilo/
+.playwright-cli/
+.qwen/
+.windsurf/
+.continue/
+.agentrules
+skills-lock.json
 
 # Obsidian vault
 .obsidian/
@@ -27,9 +36,8 @@ Untitled*.canvas
 tasks.md
 AGENTS.md
 
-# Local env contracts
+# Local env files (never commit real credentials)
 .env.local
-.env.example
 .env.development.local
 .env.test.local
 .env.production.local
@@ -62,8 +70,28 @@ lint_errors.txt
 qmd_bugs.txt
 qmd_help.txt
 *.qmd_help.txt
+coderabbit.txt
 c:*
+output/
+
+# Data files (large catalog data, not for repo)
+BiochemistryTests_parameters.txt
+other_lab_tests_parameters.json
+demo\ pdf.jpeg
+output/*.jpeg
+output/*.jpg
+output/*.png
+
+# Scripts — local MCP runners
+scripts/run-*.cmd
+scripts/e2e/
 
 # Python scripts (if not needed in production)
 python_scripts/
 
+# Supabase local state
+supabase/.branches/
+
+# Windows specific ghost files
+nul
+{

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { normalizePatientPhone } from "@/lib/patients/phone";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function createPatient(formData: FormData) {
@@ -23,8 +24,7 @@ export async function createPatient(formData: FormData) {
     full_name: formData.get("full_name") as string,
     date_of_birth: (formData.get("date_of_birth") as string) || null,
     sex: (formData.get("sex") as string) || null,
-    whatsapp_number: (formData.get("whatsapp_number") as string) || null,
-    email: (formData.get("email") as string) || null,
+    phone: normalizePatientPhone(formData.get("phone") as string),
     created_by: user.id,
   });
 

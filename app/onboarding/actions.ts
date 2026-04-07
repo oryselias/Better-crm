@@ -19,17 +19,12 @@ export async function createClinicAction(formData: FormData) {
     redirect("/login");
   }
 
-  const slug = clinicName
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-
   const admin = createSupabaseAdminClient();
 
   // Create the clinic
   const { data: clinic, error: clinicError } = await admin
     .from("clinics")
-    .insert({ name: clinicName, slug: `${slug}-${Date.now()}` })
+    .insert({ name: clinicName })
     .select("id")
     .single();
 
@@ -44,7 +39,6 @@ export async function createClinicAction(formData: FormData) {
       id: user.id,
       clinic_id: clinic.id,
       role: "admin",
-      full_name: user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? null,
     });
 
   if (profileError) {

@@ -1,4 +1,4 @@
-import { ArrowLeft, Calendar, FileText, Mail, Phone, User } from "lucide-react";
+import { ArrowLeft, FileText, Phone, User } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -14,38 +14,22 @@ export default async function PatientDetailPage({
 
   const { data: patient } = await supabase
     .from("patients")
-    .select("*")
+    .select("id, full_name, date_of_birth, sex, phone, created_at")
     .eq("id", id)
     .single();
 
   if (!patient) notFound();
 
-  const [{ data: appointments }, { data: reports }] = await Promise.all([
-    supabase
-      .from("appointments")
-      .select("id, scheduled_at, status, notes")
-      .eq("patient_id", id)
-      .order("scheduled_at", { ascending: false })
-      .limit(10),
-    supabase
-      .from("lab_reports")
-      .select("id, source_file_name, review_state, parser_confidence, ingested_at")
-      .eq("patient_id", id)
-      .order("ingested_at", { ascending: false })
-      .limit(10),
-  ]);
+  const { data: reports } = await supabase
+    .from("lab_reports")
+    .select("id, report_no, status, created_at, final_amount")
+    .eq("patient_id", id)
+    .order("created_at", { ascending: false })
+    .limit(10);
 
-  const reportStateColors: Record<string, string> = {
-    pending: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-    reviewed: "bg-green-500/10 text-green-400 border-green-500/20",
-    rejected: "bg-red-500/10 text-red-400 border-red-500/20",
-  };
-
-  const statusColors: Record<string, string> = {
-    scheduled: "bg-primary/10 text-primary border-primary/20",
-    checked_in: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-    completed: "bg-green-500/10 text-green-400 border-green-500/20",
-    cancelled: "bg-red-500/10 text-red-400 border-red-500/20",
+  const reportStatusColors: Record<string, string> = {
+    pending: "bg-warning-container text-on-warning-container border-warning/30",
+    completed: "bg-secondary-container text-on-secondary-container border-secondary/30",
   };
 
   return (
@@ -61,7 +45,7 @@ export default async function PatientDetailPage({
       </div>
 
       {/* Header */}
-      <div className="surface rounded-[2rem] border border-outline-variant/30 p-6">
+      <div className="surface rounded-lg border border-outline-variant/30 p-6 shadow-sm">
         <div className="flex items-start gap-5">
           <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary border border-primary/20">
             <User className="h-7 w-7" />
@@ -72,77 +56,23 @@ export default async function PatientDetailPage({
             </h1>
             <p className="mt-1 text-sm text-on-surface-variant">
               {patient.date_of_birth ?? "No DOB"} &bull;{" "}
-              {patient.sex ?? "Unknown sex"} &bull;{" "}
-              <span className="inline-flex rounded-md bg-surface-container px-2 py-0.5 text-xs font-medium border border-outline-variant/30">
-                {patient.external_id ?? "EXT-PENDING"}
-              </span>
+              {patient.sex ?? "Unknown sex"}
             </p>
             <div className="mt-3 flex flex-wrap gap-4 text-sm text-on-surface-variant">
-              {patient.whatsapp_number && (
+              {patient.phone && (
                 <span className="flex items-center gap-1.5">
                   <Phone className="h-3.5 w-3.5" />
-                  {patient.whatsapp_number}
+                  {patient.phone}
                 </span>
               )}
-              {patient.email && (
-                <span className="flex items-center gap-1.5">
-                  <Mail className="h-3.5 w-3.5" />
-                  {patient.email}
-                </span>
-              )}
+              <span>Added {new Date(patient.created_at).toLocaleDateString("en-IN")}</span>
             </div>
           </div>
         </div>
-
-        {patient.notes && (
-          <div className="mt-5 rounded-xl bg-surface-container/50 border border-outline-variant/20 px-4 py-3 text-sm text-on-surface-variant">
-            {patient.notes}
-          </div>
-        )}
       </div>
 
-      {/* Appointments */}
-      <section className="surface overflow-hidden rounded-[2rem] border border-outline-variant/30">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant/30">
-          <h2 className="font-semibold text-on-surface flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-primary" />
-            Appointments
-          </h2>
-        </div>
-        {appointments && appointments.length > 0 ? (
-          <ul className="divide-y divide-outline-variant/30">
-            {appointments.map((appt) => (
-              <li key={appt.id} className="flex items-center justify-between px-6 py-4">
-                <div>
-                  <p className="text-sm font-medium text-on-surface">
-                    {new Date(appt.scheduled_at).toLocaleString("en-IN", {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                    })}
-                  </p>
-                  {appt.notes && (
-                    <p className="mt-0.5 text-xs text-on-surface-variant">{appt.notes}</p>
-                  )}
-                </div>
-                <span
-                  className={`inline-flex rounded-md border px-2 py-1 text-xs font-medium capitalize ${
-                    statusColors[appt.status] ?? "bg-surface-container text-on-surface-variant border-outline-variant/30"
-                  }`}
-                >
-                  {appt.status.replace("_", " ")}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="px-6 py-8 text-center text-sm text-on-surface-variant">
-            No appointments on record.
-          </p>
-        )}
-      </section>
-
       {/* Lab Reports */}
-      <section className="surface overflow-hidden rounded-[2rem] border border-outline-variant/30">
+      <section className="surface overflow-hidden rounded-lg border border-outline-variant/30 shadow-sm">
         <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant/30">
           <h2 className="font-semibold text-on-surface flex items-center gap-2">
             <FileText className="h-4 w-4 text-primary" />
@@ -155,23 +85,19 @@ export default async function PatientDetailPage({
               <li key={report.id} className="flex items-center justify-between px-6 py-4">
                 <div>
                   <p className="text-sm font-medium text-on-surface">
-                    {report.source_file_name ?? report.id.slice(0, 8)}
+                    Report #{report.report_no}
                   </p>
                   <p className="mt-0.5 text-xs text-on-surface-variant">
-                    {new Date(report.ingested_at).toLocaleDateString("en-IN", { dateStyle: "medium" })}
-                    {report.parser_confidence != null && (
-                      <span className="ml-2">
-                        {(Number(report.parser_confidence) * 100).toFixed(0)}% confidence
-                      </span>
-                    )}
+                    {new Date(report.created_at).toLocaleDateString("en-IN", { dateStyle: "medium" })}
+                    <span className="ml-2">Rs. {Number(report.final_amount ?? 0).toFixed(0)}</span>
                   </p>
                 </div>
                 <span
                   className={`inline-flex rounded-md border px-2 py-1 text-xs font-medium capitalize ${
-                    reportStateColors[report.review_state] ?? "bg-surface-container text-on-surface-variant border-outline-variant/30"
+                    reportStatusColors[report.status] ?? "bg-surface-container text-on-surface-variant border-outline-variant/30"
                   }`}
                 >
-                  {report.review_state}
+                  {report.status}
                 </span>
               </li>
             ))}

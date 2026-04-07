@@ -7,9 +7,10 @@ import { createSupabaseMiddlewareClient } from "@/lib/supabase/middleware";
 const protectedPrefixes = [
   "/dashboard",
   "/patients",
-  "/appointments",
-  "/reports",
-  "/billing",
+  "/lab-report",
+  "/test-catalog",
+  "/onboarding",
+  "/setup/supabase",
 ];
 
 export async function proxy(request: NextRequest) {

@@ -35,7 +35,7 @@ export default async function SupabaseSetupPage() {
   return (
     <main className="min-h-screen px-6 py-8 md:px-10">
       <div className="mx-auto flex max-w-6xl flex-col gap-6">
-        <section className="surface relative overflow-hidden rounded-[2rem] border border-outline-variant/30 px-8 py-8 md:px-10 md:py-10">
+        <section className="surface relative overflow-hidden rounded-lg border border-outline-variant/30 px-8 py-8 md:px-10 md:py-10 shadow-sm">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(15,118,110,0.16),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(20,32,51,0.1),_transparent_26%)]" />
           <div className="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl space-y-4">
@@ -75,7 +75,7 @@ export default async function SupabaseSetupPage() {
         </section>
 
         <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="surface rounded-[2rem] border border-outline-variant/30 p-6 md:p-8">
+          <div className="surface rounded-lg border border-outline-variant/30 p-6 md:p-8 shadow-sm">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-2">
                 <p className="eyebrow">Connection Status</p>
@@ -115,7 +115,7 @@ export default async function SupabaseSetupPage() {
                 return (
                   <article
                     key={check.title}
-                    className={`rounded-[1.5rem] border p-5 ${styles.card}`}
+                    className={`rounded-lg border p-5 ${styles.card}`}
                   >
                     <div className="flex items-center justify-between gap-3">
                       <h3 className="text-base font-semibold tracking-[-0.02em]">
@@ -136,7 +136,7 @@ export default async function SupabaseSetupPage() {
             </div>
           </div>
 
-          <div className="surface rounded-[2rem] border border-outline-variant/30 p-6 md:p-8">
+          <div className="surface rounded-lg border border-outline-variant/30 p-6 md:p-8 shadow-sm">
             <div className="space-y-4">
               <p className="eyebrow">What To Paste</p>
               <h2 className="text-2xl font-semibold tracking-[-0.03em]">
@@ -148,7 +148,7 @@ export default async function SupabaseSetupPage() {
               </p>
             </div>
 
-            <div className="mt-5 rounded-[1.5rem] border border-outline-variant/30 bg-surface-container-lowest p-5 text-sm text-on-surface">
+            <div className="mt-5 rounded-lg border border-outline-variant/30 bg-surface-container-lowest p-5 text-sm text-on-surface">
               <pre className="overflow-x-auto whitespace-pre-wrap leading-6">{`NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=

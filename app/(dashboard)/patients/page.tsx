@@ -11,9 +11,7 @@ type PatientRow = {
   full_name: string;
   date_of_birth: string | null;
   sex: string | null;
-  external_id: string | null;
-  whatsapp_number: string | null;
-  email: string | null;
+  phone: string | null;
   created_at: string;
 };
 
@@ -27,7 +25,7 @@ export default async function PatientsPage({
 
   let query = supabase
     .from("patients")
-    .select("id, full_name, date_of_birth, sex, external_id, whatsapp_number, email, created_at")
+    .select("id, full_name, date_of_birth, sex, phone, created_at")
     .order("created_at", { ascending: false });
 
   if (q) query = query.ilike("full_name", `%${q}%`);
@@ -49,18 +47,28 @@ export default async function PatientsPage({
           <Suspense>
             <PatientSearch />
           </Suspense>
+          <Link
+            href="/lab-report/new"
+            data-testid="patients-create-report-link"
+            className="rounded-xl border border-outline-variant/30 bg-surface-container px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container-highest"
+          >
+            Create Report
+          </Link>
           <NewPatientDialog />
         </div>
       </div>
 
-      <section className="surface overflow-hidden rounded-[2rem] border border-outline-variant/30">
+      <section
+        data-testid="patients-table"
+        className="surface overflow-hidden rounded-lg border border-outline-variant/30 shadow-sm"
+      >
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-outline-variant/50 bg-surface-container-lowest text-on-surface-variant">
               <tr>
                 <th className="px-6 py-4 font-semibold">Patient</th>
-                <th className="px-6 py-4 font-semibold">ID / External</th>
-                <th className="px-6 py-4 font-semibold">Contact</th>
+                <th className="px-6 py-4 font-semibold">Patient ID</th>
+                <th className="px-6 py-4 font-semibold">Phone</th>
                 <th className="px-6 py-4 font-semibold">Added</th>
                 <th className="px-6 py-4 text-right font-semibold">Actions</th>
               </tr>
@@ -70,6 +78,7 @@ export default async function PatientsPage({
                 patients.map((patient: PatientRow) => (
                   <tr
                     key={patient.id}
+                    data-testid={`patient-row-${patient.id}`}
                     className="transition-colors hover:bg-surface-container/50"
                   >
                     <td className="px-6 py-4">
@@ -89,11 +98,11 @@ export default async function PatientsPage({
                     </td>
                     <td className="px-6 py-4">
                       <span className="inline-flex rounded-md bg-surface-container px-2 py-1 text-xs font-medium text-on-surface-variant border border-outline-variant/30">
-                        {patient.external_id || "EXT-PENDING"}
+                        {patient.id.slice(0, 8).toUpperCase()}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-on-surface-variant">
-                      <p>{patient.whatsapp_number || patient.email || "No contact"}</p>
+                      <p>{patient.phone || "No phone"}</p>
                     </td>
                     <td className="px-6 py-4 text-on-surface-variant">
                       {new Date(patient.created_at).toLocaleDateString()}

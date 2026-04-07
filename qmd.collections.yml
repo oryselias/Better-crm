@@ -1,5 +1,5 @@
 collections:
-  - name: health-crm
+  - name: better-crm
     path: .
     include:
       - "**/*.{ts,tsx,js,jsx,md,json,html,css,yml,sql,toml}"
@@ -11,3 +11,14 @@ collections:
       - ".qmd/**"
       - ".tools/**"
       - ".env*.local"
+      - "output/**"
+      - "TEST-DATA/**"
+      - ".playwright-cli/**"
+      - "scripts/e2e/**"
+      - "coverage/**"
+      - "public/**"
+      - "**/*.lock"
+      - "**/*.sqlite"
+      - "**/*.sqlite-wal"
+      - "**/*.sqlite-shm"
+      - "supabase/.temp/**"

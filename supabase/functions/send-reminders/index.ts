@@ -40,6 +40,20 @@ async function sendWhatsAppMessage(to: string, body: string): Promise<{ success:
 }
 
 Deno.serve(async (req) => {
+  // Guard: require shared secret so arbitrary callers can't trigger bulk sends.
+  // Set FUNCTION_SECRET in Supabase project secrets and pass the same value
+  // in your cron job header: Authorization: Bearer <FUNCTION_SECRET>
+  const fnSecret = Deno.env.get("FUNCTION_SECRET");
+  if (fnSecret) {
+    const auth = req.headers.get("Authorization") ?? "";
+    const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+    if (token !== fnSecret) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { "Content-Type": "application/json" },
+      });
+    }
+  }
+
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseKey);

@@ -1,0 +1,55 @@
+name: Database Guard
+
+on:
+  pull_request:
+    paths:
+      - "supabase/**"
+      - "docs/schema/**"
+      - ".github/workflows/database.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "supabase/**"
+      - "docs/schema/**"
+      - ".github/workflows/database.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: database-guard-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  postgres-checks:
+    name: Lint schema and run pgTAP
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install Supabase CLI locally
+        run: npm install --no-save supabase@2.84.6
+
+      - name: Start local Supabase Postgres
+        run: npx supabase db start --workdir . --yes
+
+      - name: Lint local schema
+        run: npx supabase db lint --workdir . --local --level error --fail-on error
+
+      - name: Run pgTAP RLS checks
+        run: npx supabase db test supabase/tests/database --workdir . --local
+
+      - name: Stop local Supabase stack
+        if: always()
+        run: npx supabase stop --workdir . --no-backup

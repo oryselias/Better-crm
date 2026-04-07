@@ -1,0 +1,324 @@
+Verify each finding against the current code and only fix it if needed.
+
+Inline comments:
+In @.gitignore:
+- Around line 74-82: The global image patterns (*.jpeg, *.jpg, *.png) and the
+quoted filename ("demo pdf.jpeg") are too broad; restrict ignores to generated
+files under output/ and make the specific demo filename match correctly: replace
+the repo-wide patterns with output/*.jpeg, output/*.jpg, output/*.png (so only
+images in the output/ directory are ignored), and change the quoted "demo
+pdf.jpeg" to a proper .gitignore entry for the file with a space (e.g., demo\
+pdf.jpeg) or a path under output/ if it’s generated; keep the existing output/
+line as-is.
+
+In `@app/`(dashboard)/lab-report/[id]/page.tsx:
+- Around line 830-840: The helper function _formatResultLabel is currently
+unused; either delete _formatResultLabel to remove dead code, or replace the
+existing inline label construction in the result rendering logic (where testName
+and parameterName are composed for each result row—e.g., the component/function
+that renders test result labels or TestResultRow) with a call to
+_formatResultLabel(testName, parameterName, parameterCount) so label formatting
+is centralized and the helper is actually used.
+- Around line 598-610: The help-text ternary block contains a redundant check
+for selectedCategory (checked twice with identical text); simplify the
+conditional inside the JSX by removing the duplicated branch and ensuring the
+sequence is: if loadingCatalog -> message, else if testSearchTerm ->
+(suggestedTests.length>0 ? top matches : no matches), else if selectedCategory
+-> department-specific message, else -> default "Showing all tests..." message;
+update the expression using the existing variables loadingCatalog,
+testSearchTerm, suggestedTests, and selectedCategory in the component to
+eliminate the duplicate condition.
+
+In `@app/api/reports/`[id]/pdf/route.ts:
+- Around line 120-121: The POST handler currently calls
+uploadGeneratedReport(id) and ignores the paperSize option; update the POST
+route in app/api/reports/[id]/pdf/route.ts to parse the incoming paperSize (from
+request body JSON or query params, matching how the GET handler reads it) and
+pass that value through to uploadGeneratedReport(id, { paperSize }) (or the
+equivalent options object the function accepts). Locate uploadGeneratedReport
+and ensure its signature accepts and forwards a paperSize option to the PDF
+generation/upload code so uploads use the specified paperSize rather than
+defaulting to A4.
+- Around line 47-51: Remove the debug console.log statements that expose PII
+(the three lines logging user.id, profile, and ownRow) from the PDF route
+handler in route.ts; locate the block where user, profile, and ownRow are
+available (the PDF API request handler) and delete those console.log(...) calls
+or replace them with non-PII-safe logging (e.g., an audit/log call that only
+records operation IDs or boolean/sanitized flags) so no raw user IDs or
+profile/report data are written to server logs.
+
+In `@app/verify/`[id]/page.tsx:
+- Around line 44-45: The Array.isArray normalization for report.patient and
+report.clinic is unnecessary; update the access to use the single-object shape
+returned by PostgREST by directly assigning const patient = report.patient and
+const clinic = report.clinic (or use the existing variable names) and remove the
+Array.isArray branches in the page component where report is handled (look for
+the variables patient, clinic and the surrounding logic in the
+verify/[id]/page.tsx). Ensure any downstream code expects an object (or
+nullable) rather than an array.
+
+In `@docs/schema/schema-reference.md`:
+- Around line 3-20: The schema docs in docs/schema/schema-reference.md are
+stale: remove or update the columns that no longer exist (clinics.slug,
+clinics.is_active, profiles.full_name, and test_catalog.clinic_id) to match the
+current DB schema as defined in
+supabase/migrations/20260407000000_clean_schema.sql; edit the clinics and
+profiles tables in the Markdown to reflect the actual columns (delete the listed
+obsolete columns and adjust notes/types if needed) and scan the rest of the file
+(including the test_catalog section) for any other discrepancies versus the
+migration and make the docs match the migration schema.
+
+In `@lib/reports/pdf-generator.ts`:
+- Around line 112-118: The external logo fetch using clinic.logo_url that
+produces logoBuffer should be hardened: validate the URL origin against an
+allowlist of trusted CDN/storage domains before fetching, and enforce a fetch
+timeout (use AbortController) so slow hosts can't block PDF generation; after
+fetch, check response.ok, validate content-type is an image (e.g.,
+image/png|jpeg|svg) and a safe content-length/byte-size limit before converting
+to a Buffer, and ensure all failures return null so doc.image() is only called
+with vetted buffers. Use the symbols clinic.logo_url, logoBuffer and doc.image()
+to locate where to add the allowlist check, timeout, response validation, and
+safe Buffer creation.
+- Around line 228-229: The QR generation currently hardcodes the host in
+genQR(`https://bettercrm.com/verify/${opts.reportId ?? report.id}`); update
+generateLabReportPDF (or its caller) to accept a public app origin string (e.g.,
+publicOrigin) or read it from server config, then build the URL using that
+origin (publicOrigin + `/verify/${opts.reportId ?? report.id}`) before calling
+genQR; adjust references to genQR, generateLabReportPDF, opts.reportId, and
+report.id accordingly so staging/preview/self-hosted deployments emit the
+correct verification link.
+- Around line 212-214: The patient sex rendering and age calculation are
+incorrect: update the pSex assignment (where pSex is built from
+report.patient?.sex) to treat missing/empty values as "N/A" before attempting
+charAt/substring and to safely capitalize only when a non-empty string exists;
+and modify the fmtAge function (used at fmtAge(report.patient?.date_of_birth)
+and defined around lines referenced) to compute age using year/month/day
+(subtract birth date from now and adjust year difference if current month/day is
+before birth month/day) so that infants born late in the prior year don’t show
+as 1Y prematurely, and ensure fmtAge returns a sensible fallback like "N/A" when
+date_of_birth is null/invalid. Ensure references to report.created_at formatting
+remain unchanged.
+
+In `@lib/reports/reference-ranges.ts`:
+- Around line 109-111: The current substring matching in hasQual, qLabels, and
+qStatus treats "normal" as matching inside words like "abnormal"; update those
+functions to treat "normal" as an exact token (not via includes) by tokenizing
+the input (e.g., split on whitespace/punctuation) or using word-boundary checks
+and then matching tokens against the NEG array (or specially treat the "normal"
+entry in NEG) so that "normal" only matches as a standalone value while other
+NEG terms still allow substring/contains as appropriate; update hasQual,
+qLabels, and qStatus to use the token-based check for "normal" (or a dedicated
+exact-match step) while keeping existing matching behavior for the other
+NEG/POS/INCON entries.
+- Around line 129-135: The logic in evaluateReferenceRange currently falls back
+to parseBounds(ref) which re-parses the sex-specific rendered string (e.g., "M:
+... / F: ...") and incorrectly uses the male segment; change this so that nb is
+set from bounds(n, sex) only and do not call parseBounds(ref) when
+resolveReferenceRange returned a sex-specific combined string. Concretely, in
+evaluateReferenceRange: detect when ref contains sex-specific markers (e.g.,
+"M:" or "F:" or the pattern "M:.*F:") and, in that case, treat nb as null (so
+isNum becomes false and status remains "unknown") instead of parsing; only call
+parseBounds(ref) when ref is a single generic range string. Ensure references to
+functions/values: evaluateReferenceRange, resolveReferenceRange, bounds, and
+parseBounds are updated accordingly.
+
+In `@scripts/import-biochemistry-catalog.mjs`:
+- Around line 47-55: The current flow copies txtPath to tmpPath and uses dynamic
+import(`./_biochem_tmp.ts?...`) which executes the file as module code (risking
+privileged env access) — instead, read the file contents via
+fs.readFileSync(txtPath, 'utf8') and parse it as data (JSON.parse or your
+catalog text parser) to extract biochemistryTests (instead of relying on import
+and mod.biochemistryTests/mod.default?.biochemistryTests); remove the
+fs.copyFileSync/tmpPath/import/fs.unlinkSync dance and replace it with safe
+file-read + parse logic that never executes the file as code, while keeping
+references to txtPath, biochemistryTests, and any existing parsing helper you
+have.
+
+In `@scripts/sync-biochemistry-catalog.mjs`:
+- Around line 66-69: Replace the duplicated/partial stub-detection logic with a
+single predicate (e.g., isPlaceholderRow) and use it both when building richRows
+and later when filtering at lines ~110–121; the predicate should treat a row as
+a placeholder only if it has a single parameter named "Result" AND lacks
+meaningful measurement metadata (no unit AND no normal_range nor
+male_normal_range nor female_normal_range), then update the uses of the current
+inline checks (the richRows filter and the later pass) to call
+isPlaceholderRow(row).
+
+In `@scripts/sync-other-lab-tests-catalog.mjs`:
+- Around line 140-158: The current logic that builds stubPlaceholderIds
+(filtering existingRows by category, parameters length/name/unit/normal_range)
+can deactivate real qualitative tests; update the filter to also require an
+explicit placeholder provenance flag instead of relying on shape alone—e.g.,
+check a unique marker like row.provenance === "placeholder" or
+row.is_placeholder === true (or the appropriate source/created_by value in your
+data) when computing stubPlaceholderIds (the variables/functions to change:
+stubPlaceholderIds, TARGET_CATEGORIES, normalizeWhitespace, existingRows); only
+include ids that both match the current shape checks and have that explicit
+placeholder marker before calling supabase.from("test_catalog").update({
+is_active: false }).in("id", stubPlaceholderIds).
+
+In `@supabase/functions/send-notifications/index.ts`:
+- Around line 58-68: The Authorization guard currently uses plain string
+comparison (token !== fnSecret) which is vulnerable to timing attacks; replace
+it with a timing-safe comparison by importing timingSafeEqual from Deno std
+(e.g., "@std/crypto/timing-safe-equal") and comparing new
+TextEncoder().encode(token) to new TextEncoder().encode(fnSecret) inside the
+same guard (the code that reads Deno.env.get('FUNCTION_SECRET') and
+req.headers.get('Authorization') and computes token), and update the logic to
+fail closed when FUNCTION_SECRET is not set (reject requests with 401 instead of
+allowing unauthenticated access).
+
+In `@supabase/functions/send-reminders/index.ts`:
+- Around line 42-56: Add an explicit HTTP method check at the start of the
+Deno.serve handler (the function handling incoming req in
+send-reminders/index.ts) so only the intended method (e.g., POST) is allowed; if
+req.method is not "POST" return a 405 response with an Allow header and a JSON
+error body. Keep this check before the existing auth/Authorization logic (the
+fnSecret / token block) so unauthorized or accidental GET/PUT/etc. calls are
+rejected early and consistently with send-notifications/index.ts.
+- Around line 43-55: The Authorization guard compares token !== fnSecret using a
+regular string equality which is vulnerable to timing attacks; replace that
+comparison with a constant-time comparison helper (e.g., constantTimeEquals) and
+use it when validating token against fnSecret in the send-reminders function:
+create a small function (constantTimeEquals or timingSafeEqual) that compares
+two strings/Uint8Arrays in constant time and call it instead of token !==
+fnSecret so the guard uses timing-safe validation of fnSecret, auth, and token.
+
+In `@supabase/migrations/20260407000000_clean_schema.sql`:
+- Line 51: Several numeric columns allow negative prices and out-of-range
+discounts which can produce negative final_amount; update the column definitions
+(or add ALTER TABLE ... ADD CONSTRAINT) where you see "price numeric(10,2)" to
+include CHECK (price >= 0) and where you see the "discount" column to include
+CHECK (discount BETWEEN 0 AND 100), and ensure any constraint names are unique
+and the final_amount calculation (referenced near "final_amount") will no longer
+produce negatives when discount is out of bounds.
+- Around line 202-204: The migration currently grants blanket SELECT to the anon
+role on public.clinics, public.patients and public.lab_reports and relies on
+USING (true) policies, which exposes all rows; remove the GRANT SELECT
+statements for anon and remove/replace any RLS policies that use USING (true) on
+these tables (look for policies related to verification/anon access), enable RLS
+(ALTER TABLE ... ENABLE ROW LEVEL SECURITY) if not already, and implement a
+least-privilege alternative such as a dedicated RPC or view (e.g., a function
+like verify_patient_lookup or a sanitized public.verification_view) that returns
+only the minimal fields for verification and is explicitly GRANTed to anon, or
+issue a short-lived public token mechanism instead; ensure new row-level
+policies on public.patients and public.lab_reports restrict rows by explicit
+conditions rather than USING (true).
+- Around line 31-41: Ensure patient rows are scoped to a clinic and lab_reports
+reference that same clinic: add a composite uniqueness on patients by adding
+UNIQUE (clinic_id, id) to the patients table definition, then alter lab_reports
+to add a foreign key FOREIGN KEY (clinic_id, patient_id) REFERENCES patients
+(clinic_id, id) and create an index on lab_reports (clinic_id, patient_id).
+Apply the same clinic-scoped FK+index pattern wherever lab_reports or other
+tables reference patient_id (e.g., any occurrences involving
+lab_reports.patient_id and patient-related FKs) to enforce clinic ownership and
+improve query performance.
+- Around line 105-114: The trigger function assign_report_no() is racy because
+using SELECT COALESCE(MAX(report_no),0)+1 can produce duplicate report_no under
+concurrent inserts; replace this with a concurrency-safe per-clinic counter and
+enforce uniqueness: implement a per-clinic sequence (e.g., a table
+clinic_sequences with nextval semantics or create a real sequence per clinic) or
+serialize with a FOR UPDATE row lock or pg_advisory_lock based on NEW.clinic_id
+inside assign_report_no(), use that safe increment to set NEW.report_no, and
+add/replace the non-unique index with a UNIQUE INDEX on (clinic_id, report_no)
+to guarantee collisions are rejected; apply the same fix to the other similar
+function(s) referenced (lines ~170-174) and update the index at line ~185
+accordingly.
+- Around line 220-223: The profiles table RLS is too permissive: the
+INSERT/UPDATE policy that only checks id = auth.uid() lets any authenticated
+user set clinic_id and role; fix by enabling ROW LEVEL SECURITY on profiles (if
+not already) and replacing the current "id = auth.uid()" insert/update policies
+with ones that either (a) restrict writes to the service role (auth.role() =
+'service_role') for setting clinic_id/role, or (b) validate clinic_id and role
+against a canonical membership/invitation table (e.g., clinic_memberships or
+clinic_invitations) by joining that table in the USING/WITH CHECK clause so only
+invited/members can set that clinic_id/role; also re-evaluate the public clinic
+policy ("Public can read clinic for verification") to ensure it does not expose
+sensitive clinic identifiers if you rely on invitation checks. Ensure the
+specific policy names/predicates on profiles that currently use id = auth.uid()
+are updated accordingly.
+
+---
+
+Outside diff comments:
+In `@app/onboarding/actions.ts`:
+- Around line 25-42: Remove the stale profiles.full_name property from the type
+and test fixtures: update the Profile type definition in lib/types.ts (remove
+the full_name field and any references) and update the test DB seed in
+supabase/tests/database/rls.sql to stop inserting into profiles(full_name) and
+instead insert only the actual current columns (or omit that column if not
+present). Ensure any code expecting full_name is updated to use the new profile
+shape; verify onboarding action (the profile insert in
+app/onboarding/actions.ts) uses Profile fields id, clinic_id, role (already
+present) and adjust any other usages/imports of the Profile type accordingly so
+types and tests match the cleaned DB schema.
+
+---
+
+Duplicate comments:
+In `@app/`(dashboard)/lab-report/page.tsx:
+- Around line 32-35: Add an explicit error state to the page component (e.g.,
+const [error, setError] = useState<Error|null>(null)) and in the catch blocks
+that currently only call console.error (the try/catch around the reports fetch
+and the other catch at lines ~87-90) call setError(error) before finally calling
+setLoading(false); update the render logic in the component to check error first
+and show a retry/failure UI (with a retry handler that re-invokes the fetch
+function) instead of falling through to the “No reports found” empty state.
+- Around line 17-31: The dashboard computes completed and pending from only the
+first page returned by fetchReports (getReports({}, 1, 50)), causing mismatched
+stats vs result.total; update fetchReports to use a single authoritative source
+for all counts: either call a new/existing endpoint that returns aggregated
+stats (e.g., getReportStats or extend getReports to include counts per status)
+and use that data to call setStats({ total: result.total, completed:
+stats.completed, pending: stats.pending }), or, if no stats API exists, request
+counts for each status explicitly (e.g., getReports({ status: 'completed' }, 1,
+1) to read total) instead of deriving completed/pending from result.data; ensure
+you modify fetchReports and any related getReports contract to return/consume
+the global counts so completed/pending reflect the full dataset.
+
+In `@app/globals.css`:
+- Around line 164-176: Rename the keyframe identifiers from camelCase to
+kebab-case (e.g., change fadeSlideIn → fade-slide-in and skeletonShimmer →
+skeleton-shimmer) and update all corresponding animation references: replace
+usage of fadeSlideIn in the .animate-fade-in rule's animation declaration with
+fade-slide-in and replace skeletonShimmer in the skeleton-related animation
+declarations with skeleton-shimmer; ensure any other occurrences in the file
+match the new kebab-case names.
+
+In `@components/patients/new-patient-dialog.tsx`:
+- Line 118: The phone input's pattern attribute currently uses pattern="\d{10}"
+which loses the backslash and breaks browser validation; update the phone input
+in new-patient-dialog.tsx (the input element handling phone/phone number) to use
+a properly escaped regex such as pattern="[0-9]{10}" or pattern={"\\d{10}"} so
+the browser receives a valid pattern and native validation works as expected.
+
+In `@docs/Architecture.md`:
+- Around line 3-135: The markdown linter errors are due to missing blank lines
+around headings, tables, and code fences and a code-fence without a language
+identifier; fix by ensuring there is an empty line before and after each
+top-level and secondary heading (e.g., "## Stack", "## Core Tables", "## PDF
+Generation", "## What's Built ✅"), add blank lines above and below Markdown
+tables (the Core Tables and the Pages & Routes/High Priority/Medium
+Priority/Lower Priority tables), ensure blank lines surround the fenced code
+block labeled "App Routes" and add a language identifier (e.g., ```text or
+```md) to that fence, and check other fences (the Report JSONB Structure block)
+for the same spacing so MD022/MD031/MD040 are resolved.
+
+In `@package.json`:
+- Line 26: The package "@types/qrcode" is a TypeScript-only type declaration and
+should be moved out of dependencies into devDependencies to avoid installing it
+in production; update package.json to remove "@types/qrcode" from the
+"dependencies" object and add it under "devDependencies" instead, then run the
+provided grep checks to confirm no source file imports "@types/qrcode" and that
+runtime usage imports "qrcode" only.
+
+In `@scripts/sync-other-lab-tests-catalog.mjs`:
+- Around line 48-63: buildUniqueCodes produces non-unique candidates when
+multiple tests share the same normalized baseCode and also normalize to the same
+test.id (or have blank ids); fix by ensuring final codes are made unique
+deterministically: inside buildUniqueCodes keep a seenCounts map (keyed by the
+chosen baseCode) and when emitting a code for a colliding base, append a
+monotonic suffix (e.g., -1, -2 ...) or include the test array index to guarantee
+uniqueness; reference normalizeCode and buildUniqueCodes to locate where to
+increment and apply the suffix so every returned string is unique before the
+upsert.
