@@ -93,5 +93,5 @@ python_scripts/
 supabase/.branches/
 
 # Windows specific ghost files
-nul
-{
+/nul
+/{

@@ -1,24 +1,30 @@
 # Schema Reference
 
 ## clinics
+
 | Column | Type | Notes |
 |---|---|---|
 | id | uuid | PK |
 | name | text | Clinic/lab display name |
-| slug | text | Unique identifier |
-| is_active | bool | |
+| tagline | text | Optional tagline |
+| address | text | Optional address |
+| phone | text | Optional contact number |
+| logo_url | text | Optional logo image URL |
 | created_at | timestamptz | |
 | updated_at | timestamptz | |
 
 ## profiles
+
 | Column | Type | Notes |
 |---|---|---|
 | id | uuid | FK → auth.users |
 | clinic_id | uuid | FK → clinics |
 | role | text | admin \| lab_staff \| clinician |
-| full_name | text | |
+| created_at | timestamptz | |
+| updated_at | timestamptz | |
 
 ## patients
+
 | Column | Type | Notes |
 |---|---|---|
 | id | uuid | PK |
@@ -30,18 +36,20 @@
 | created_by | uuid | FK → profiles |
 
 ## test_catalog
+
 | Column | Type | Notes |
 |---|---|---|
 | id | uuid | PK |
-| clinic_id | uuid | FK → clinics (unique per clinic) |
 | name | text | e.g. "Complete Blood Count" |
 | code | text | Simple lab-facing test code |
 | category | text | e.g. "Hematology" |
-| price | numeric(10,2) | Clinic-managed default price |
+| price | numeric(10,2) | Default price |
 | parameters | jsonb | Array of TestParameter |
+| description | text | Optional |
 | is_active | bool | |
 
 ### TestParameter (inside parameters jsonb)
+
 ```json
 {
   "id": "uuid",
@@ -55,6 +63,7 @@
 ```
 
 ## lab_reports
+
 | Column | Type | Notes |
 |---|---|---|
 | id | uuid | PK |
@@ -71,5 +80,7 @@
 | created_by | uuid | FK → profiles |
 
 ## RLS Functions
-- `current_clinic_id()` → returns the logged-in user's clinic_id
+
+- `current_clinic_id()` → returns the logged-in user’s clinic_id
 - `has_clinic_access(target_clinic uuid)` → boolean check
+- `verify_report(report_id uuid)` → scoped public lookup (SECURITY DEFINER, callable by anon)

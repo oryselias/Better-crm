@@ -95,9 +95,9 @@ function parseBounds(r: string): NumericBounds | null {
 
 function fmtBounds(b: NumericBounds) {
   if (typeof b.min === "number" && typeof b.max === "number") return `${b.min}-${b.max}`;
-  if (typeof b.max === "number") return `${b.maxInclusive === false ? "<" : "≤"} ${b.max}`;
-  if (typeof b.min === "number") return `${b.minInclusive === false ? ">" : "≥"} ${b.min}`;
-  return "—";
+  if (typeof b.max === "number") return `${b.maxInclusive === false ? "<" : "\u2264"} ${b.max}`;
+  if (typeof b.min === "number") return `${b.minInclusive === false ? ">" : "\u2265"} ${b.min}`;
+  return "\u2014";
 }
 
 function coerce(v: string | number | boolean): number | null {
@@ -106,9 +106,9 @@ function coerce(v: string | number | boolean): number | null {
   return m ? (Number.isFinite(+m[0]) ? +m[0] : null) : null;
 }
 
-function hasQual(r: string) { const n = r.trim().toLowerCase(); return [...NEG,...POS,...INCON].some(t => n.includes(t)); }
-function qLabels(r: string) { const n = r.toLowerCase(); const rr = n.includes("reactive"); return { negative: rr ? "Negative / Non-Reactive" : "Negative", positive: rr ? "Positive / Reactive" : "Positive" }; }
-function qStatus(v: string) { const n = v.trim().toLowerCase(); if (!n) return "unknown"; if (INCON.some(t => n.includes(t))) return "inconclusive"; if (NEG.some(t => n.includes(t))) return "negative"; if (POS.some(t => n.includes(t))) return "positive"; return "unknown"; }
+function hasQual(r: string) { return [...NEG,...POS,...INCON].some(t => new RegExp(`\\b${t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}\\b`,'i').test(r)); }
+function qLabels(r: string) { const rr = /\b(reactive|non.?reactive)\b/i.test(r); return { negative: rr ? "Negative / Non-Reactive" : "Negative", positive: rr ? "Positive / Reactive" : "Positive" }; }
+function qStatus(v: string) { const n = v.trim(); if (!n) return "unknown"; const wb = (t: string) => new RegExp(`\\b${t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}\\b`,'i').test(n); if (INCON.some(wb)) return "inconclusive"; if (NEG.some(wb)) return "negative"; if (POS.some(wb)) return "positive"; return "unknown"; }
 function inBounds(v: number, b: NumericBounds) {
   if (typeof b.min === "number" && (b.minInclusive === false ? v <= b.min : v < b.min)) return false;
   if (typeof b.max === "number" && (b.maxInclusive === false ? v >= b.max : v > b.max)) return false;
@@ -123,19 +123,19 @@ export function resolveReferenceRange(p: ReferenceRangeParameter, sex?: Supporte
   if (n.male_normal_range && n.female_normal_range)
     return `M: ${n.male_normal_range} / F: ${n.female_normal_range}`;
   if (n.normal_range) return n.normal_range;
-  return "—";
+  return "\u2014";
 }
 
 export function evaluateReferenceRange(p: ReferenceRangeParameter, raw: string | number | boolean | null | undefined, sex?: SupportedSex) {
   const n = norm(p);
   const ref = resolveReferenceRange(n, sex);
-  if (!raw && raw !== 0) return { isAbnormal: false, status: "unknown" as const, flagLabel: "—", referenceRange: ref };
+  if (!raw && raw !== 0) return { isAbnormal: false, status: "unknown" as const, flagLabel: "\u2014", referenceRange: ref };
   const num = coerce(raw);
   const nb = bounds(n, sex) || parseBounds(ref);
   const isNum = num !== null && !!nb;
   if (isNum && num !== null) {
     if (hasQual(ref) && nb) { const l = qLabels(ref); const ok = inBounds(num, nb); return { isAbnormal: !ok, status: ok ? "negative" : "positive", flagLabel: ok ? l.negative : l.positive, referenceRange: ref }; }
-    if (!nb?.min && !nb?.max && nb?.min !== 0 && nb?.max !== 0) return { isAbnormal: false, status: "unknown" as const, flagLabel: "—", referenceRange: ref };
+    if (!nb?.min && !nb?.max && nb?.min !== 0 && nb?.max !== 0) return { isAbnormal: false, status: "unknown" as const, flagLabel: "\u2014", referenceRange: ref };
     if (typeof nb?.min === "number" && (nb.minInclusive === false ? num <= nb.min : num < nb.min)) return { isAbnormal: true, status: "low" as const, flagLabel: "Low", referenceRange: ref };
     if (typeof nb?.max === "number" && (nb.maxInclusive === false ? num >= nb.max : num > nb.max)) return { isAbnormal: true, status: "high" as const, flagLabel: hasQual(ref) ? qLabels(ref).positive : "High", referenceRange: ref };
     return { isAbnormal: false, status: hasQual(ref) ? "negative" : "normal", flagLabel: hasQual(ref) ? qLabels(ref).negative : "Normal", referenceRange: ref };
@@ -146,8 +146,8 @@ export function evaluateReferenceRange(p: ReferenceRangeParameter, raw: string |
   if (qs === "positive") return { isAbnormal: true, status: "positive" as const, flagLabel: l.positive, referenceRange: ref };
   if (qs === "negative") return { isAbnormal: false, status: "negative" as const, flagLabel: l.negative, referenceRange: ref };
   if (qs === "inconclusive") return { isAbnormal: true, status: "inconclusive" as const, flagLabel: "Inconclusive", referenceRange: ref };
-  if (ref.trim().toLowerCase() && ref.trim().toLowerCase() !== "—" && String(raw).trim().toLowerCase() === ref.trim().toLowerCase()) return { isAbnormal: false, status: "normal" as const, flagLabel: "Normal", referenceRange: ref };
-  return { isAbnormal: false, status: "unknown" as const, flagLabel: "—", referenceRange: ref };
+  if (ref.trim().toLowerCase() && ref.trim().toLowerCase() !== "\u2014" && String(raw).trim().toLowerCase() === ref.trim().toLowerCase()) return { isAbnormal: false, status: "normal" as const, flagLabel: "Normal", referenceRange: ref };
+  return { isAbnormal: false, status: "unknown" as const, flagLabel: "\u2014", referenceRange: ref };
 }
 
 export function normalizeTestCatalogEntry<T extends TestLike>(t: T): T {
