@@ -21,21 +21,19 @@ export default async function VerifyReportPage({ params }: VerifyPageProps) {
 
   const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-  const { data: report, error } = await supabase
-    .from("lab_reports")
-    .select(
-      `
-        id,
-        report_no,
-        status,
-        created_at,
-        completed_at,
-        patient:patients(full_name, date_of_birth, sex),
-        clinic:clinics(name)
-      `
-    )
-    .eq("id", id)
-    .single();
+ const { data: report, error } = await supabase
+  .from("lab_reports")
+  .select(`
+    id,
+    report_no,
+    status,
+    created_at,
+    completed_at,
+    patient:patients(full_name, age, sex),
+    clinic:clinics(name)
+  `)
+  .eq("id", id)
+  .single();
 
   if (error || !report) {
     notFound();
@@ -114,14 +112,14 @@ export default async function VerifyReportPage({ params }: VerifyPageProps) {
                 <span className="text-sm font-medium text-gray-900">{patient?.full_name || "Unknown"}</span>
               </div>
 
-              {patient?.sex && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Age / Sex</span>
-                  <span className="text-sm text-gray-900">
-                    {formatAge(patient.date_of_birth)} / {patient.sex.charAt(0).toUpperCase() + patient.sex.slice(1)}
-                  </span>
-                </div>
-              )}
+             {patient?.sex && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-500">Age / Sex</span>
+                <span className="text-sm text-gray-900">
+                  {patient.age ?? "N/A"} / {patient.sex.charAt(0).toUpperCase() + patient.sex.slice(1)}
+                </span>
+              </div>
+            )}
 
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-500">Report Date</span>

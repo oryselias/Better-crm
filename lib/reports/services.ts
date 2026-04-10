@@ -2,7 +2,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { normalizePatientPhone } from "@/lib/patients/phone";
 import { evaluateReferenceRange, normalizeTestCatalogEntry, type SupportedSex } from "@/lib/reports/reference-ranges";
 
-export interface Patient { id: string; clinic_id: string; full_name: string; date_of_birth: string | null; sex: string | null; phone: string | null; created_at: string; }
+export interface Patient { id: string; clinic_id: string; full_name: string; age: number | null; sex: string | null; phone: string | null; created_at: string; }
 export interface TestCatalog { id: string; name: string; code: string; category: string | null; parameters: TestParameter[]; description: string | null; is_active: boolean; }
 export interface TestParameter { id: string; name: string; unit: string; normal_range: string; male_normal_range?: string; female_normal_range?: string; selectOptions?: string[]; }
 export interface TestResult { parameterId: string; value: string|number|boolean; isAbnormal?: boolean; notes?: string; }
@@ -23,22 +23,48 @@ export async function searchPatients(q: string) {
   const s = createSupabaseBrowserClient();
   // Escape PostgREST meta-characters to prevent query injection
   const escapedQ = q.replace(/[\\%.,()]/g, (c) => `\\${c}`);
-  const { data, error } = await s.from('patients').select('id,clinic_id,full_name,date_of_birth,sex,phone,created_at').or(`full_name.ilike.%${escapedQ}%,phone.ilike.%${escapedQ}%`).order('full_name').limit(20);
+  const { data, error } = await s.from('patients').select('id,clinic_id,full_name,age,sex,phone,created_at').or(`full_name.ilike.%${escapedQ}%,phone.ilike.%${escapedQ}%`).order('full_name').limit(20);
   if (error) throw error;
   return data ?? [];
 }
 
-export async function createPatient(p: { full_name: string; date_of_birth?: string; sex?: string; phone?: string }) {
+export async function createPatient(p: { 
+  full_name: string; 
+  age?: number | null; 
+  sex?: string; 
+  phone?: string 
+}) {
   const s = createSupabaseBrowserClient();
+
   const { data: { user } } = await s.auth.getUser();
   if (!user) throw new Error('Not authenticated');
-  const { data: profile, error: pe } = await s.from('profiles').select('clinic_id').eq('id', user.id).single();
-  if (pe || !profile?.clinic_id) throw new Error(pe?.message ?? 'No clinic profile found');
-  const { data, error } = await s.from('patients').insert({ clinic_id: profile.clinic_id, full_name: p.full_name, date_of_birth: p.date_of_birth ?? null, sex: p.sex ?? null, phone: normalizePatientPhone(p.phone), created_by: user.id }).select('id,clinic_id,full_name,date_of_birth,sex,phone,created_at').single();
+
+  const { data: profile, error: pe } = await s
+    .from('profiles')
+    .select('clinic_id')
+    .eq('id', user.id)
+    .single();
+
+  if (pe || !profile?.clinic_id) {
+    throw new Error(pe?.message ?? 'No clinic profile found');
+  }
+
+  const { data, error } = await s
+    .from('patients')
+    .insert({
+      clinic_id: profile.clinic_id,
+      full_name: p.full_name,
+      age: p.age ?? null,                 // ✅ FIXED
+      sex: p.sex ?? null,
+      phone: normalizePatientPhone(p.phone),
+      created_by: user.id
+    })
+    .select('id,clinic_id,full_name,age,sex,phone,created_at') // ✅ FIXED
+    .single();
+
   if (error) throw error;
   return data;
 }
-
 export async function getTestCatalog(): Promise<TestCatalog[]> {
   if (_catalogCache && Date.now() - _catalogCache.ts < CACHE_TTL) return _catalogCache.data;
   const s = createSupabaseBrowserClient();
@@ -99,7 +125,7 @@ export async function getReports(f: ReportFilters = {}, page = 1, limit = 50): P
 export async function getReportById(id: string): Promise<LabReport | null> {
   const s = createSupabaseBrowserClient();
   const { data, error } = await s.from('lab_reports')
-    .select(`id,clinic_id,patient_id,report_no,status,tests,discount,total_amount,final_amount,notes,referred_by,created_at,completed_at,created_by,patient:patients(id,clinic_id,full_name,date_of_birth,sex,phone,created_at),clinic:clinics(name)`)
+    .select(`id,clinic_id,patient_id,report_no,status,tests,discount,total_amount,final_amount,notes,referred_by,created_at,completed_at,created_by,patient:patients(id,clinic_id,full_name,age,sex,phone,created_at),clinic:clinics(name)`)
     .eq('id', id)
     .single();
   if (error) return null;

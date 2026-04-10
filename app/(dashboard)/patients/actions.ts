@@ -19,10 +19,13 @@ export async function createPatient(formData: FormData) {
     .single();
   if (!profile) throw new Error("No clinic profile");
 
+  const ageInput = formData.get("age") as string;
+  const age = ageInput ? parseInt(ageInput, 10) : null;
+
   const { error } = await supabase.from("patients").insert({
     clinic_id: profile.clinic_id,
     full_name: formData.get("full_name") as string,
-    date_of_birth: (formData.get("date_of_birth") as string) || null,
+    age: age,
     sex: (formData.get("sex") as string) || null,
     phone: normalizePatientPhone(typeof formData.get("phone") === "string" ? formData.get("phone") as string : null),
     created_by: user.id,

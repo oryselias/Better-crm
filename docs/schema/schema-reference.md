@@ -30,7 +30,7 @@
 | id | uuid | PK |
 | clinic_id | uuid | FK → clinics |
 | full_name | text | Required |
-| date_of_birth | date | |
+| age | number | |
 | sex | text | male \| female \| other \| unknown |
 | phone | text | Contact number |
 | created_by | uuid | FK → profiles |

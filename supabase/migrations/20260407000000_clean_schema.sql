@@ -32,7 +32,7 @@ CREATE TABLE public.patients (
   id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   clinic_id      uuid NOT NULL REFERENCES public.clinics (id) ON DELETE CASCADE,
   full_name      text NOT NULL,
-  date_of_birth  date,
+  age  number,
   sex            text CHECK (sex IN ('male', 'female', 'other', 'unknown')),
   phone          text,
   created_by     uuid REFERENCES public.profiles (id) ON DELETE SET NULL,

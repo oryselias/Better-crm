@@ -38,9 +38,9 @@ export default function NewReportPage() {
   const [newPatientError, setNewPatientError] = useState<string | null>(null);
   const [newPatientForm, setNewPatientForm] = useState({
     full_name: '',
-    date_of_birth: '',
+    age: 0,         
     sex: '',
-    phone: '',
+    phone: ''
   });
 
   // Test catalog
@@ -127,25 +127,37 @@ export default function NewReportPage() {
     setStep(2);
   };
 
-  const handleCreatePatient = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newPatientForm.phone && !isValidPatientPhone(newPatientForm.phone)) {
-      setNewPatientError('Phone number must be exactly 10 digits.');
-      return;
-    }
+ const handleCreatePatient = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    try {
-      setNewPatientError(null);
-      const newPatient = await createPatient(newPatientForm);
-      setPatient(newPatient);
-      setShowNewPatient(false);
-      setNewPatientForm({ full_name: '', date_of_birth: '', sex: '', phone: '' });
-      setStep(2);
-    } catch (error) {
-      console.error('Error creating patient:', error);
-      setNewPatientError(error instanceof Error ? error.message : 'Failed to create patient');
-    }
-  };
+  if (newPatientForm.phone && !isValidPatientPhone(newPatientForm.phone)) {
+    setNewPatientError('Phone number must be exactly 10 digits.');
+    return;
+  }
+
+  try {
+    setNewPatientError(null);
+
+    const newPatient = await createPatient(newPatientForm);
+    setPatient(newPatient);
+    setShowNewPatient(false);
+
+  
+    setNewPatientForm({
+      full_name: '',
+      age: 0,
+      sex: '',
+      phone: ''
+    });
+
+    setStep(2);
+  } catch (error) {
+    console.error('Error creating patient:', error);
+    setNewPatientError(
+      error instanceof Error ? error.message : 'Failed to create patient'
+    );
+  }
+};
 
   const handleSavePending = async () => {
     if (!canSubmit) return;
@@ -366,15 +378,23 @@ export default function NewReportPage() {
                         />
                       </label>
 
-                      <div className="grid grid-cols-2 gap-4">
+                     <div className="grid grid-cols-2 gap-4">
                         <label className="block space-y-1.5">
-                          <span className="text-sm font-medium text-on-surface">Date of Birth</span>
+                          <span className="text-sm font-medium text-on-surface">Age</span>
                           <input
-                            type="date"
-                            value={newPatientForm.date_of_birth}
-                            onChange={(e) => setNewPatientForm(p => ({ ...p, date_of_birth: e.target.value }))}
-                            className="w-full rounded-xl border border-outline-variant/30 bg-surface-container px-4 py-3 text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
-                          />
+                          type="number"
+                          value={newPatientForm.age || ''}
+                          onChange={(e) =>
+                            setNewPatientForm((p) => ({
+                              ...p,
+                              age: e.target.value ? Number(e.target.value) : 0
+                            }))
+                          }
+                          min="0"
+                          max="150"
+                          placeholder="25"
+                          className="w-full rounded-xl border border-outline-variant/30 bg-surface-container px-4 py-3 text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
+                        />
                         </label>
                         <label className="block space-y-1.5">
                           <span className="text-sm font-medium text-on-surface">Sex</span>
