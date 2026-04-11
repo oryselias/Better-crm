@@ -10,7 +10,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 type PatientRow = {
   id: string;
   full_name: string;
-  date_of_birth: string | null;
+  age: number | null;
   sex: string | null;
   phone: string | null;
   created_at: string;
@@ -29,7 +29,7 @@ export default async function PatientsPage({
 
   let query = supabase
     .from("patients")
-    .select("id, full_name, date_of_birth, sex, phone, created_at")
+    .select("id, full_name, age, sex, phone, created_at")
     .order("created_at", { ascending: false });
 
   if (q) query = query.ilike("full_name", `%${q}%`);
@@ -95,7 +95,7 @@ export default async function PatientsPage({
                             {patient.full_name}
                           </p>
                           <p className="text-xs text-on-surface-variant">
-                            {patient.date_of_birth ?? "No DOB"} &bull; {patient.sex ?? "Unknown"}
+                            {patient.age !== null ? `${patient.age} years` : "No age"} &bull; {patient.sex ?? "Unknown"}
                           </p>
                         </div>
                       </div>

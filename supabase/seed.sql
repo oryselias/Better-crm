@@ -23,7 +23,7 @@ INSERT INTO public.profiles (id, clinic_id, role)
 VALUES ('b1111111-1111-1111-1111-111111111111', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'admin')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.patients (id, clinic_id, full_name, date_of_birth, sex, phone, created_by)
+INSERT INTO public.patients (id, clinic_id, full_name, age, sex, phone, created_by)
 VALUES
   ('c1000000-0000-0000-0000-000000000001', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Arjun Mehta',   '1982-03-14', 'male',   '9876543210', 'b1111111-1111-1111-1111-111111111111'),
   ('c1000000-0000-0000-0000-000000000002', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Priya Sharma',  '1990-07-22', 'female', '9123456789', 'b1111111-1111-1111-1111-111111111111')

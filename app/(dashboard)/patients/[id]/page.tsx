@@ -14,7 +14,7 @@ export default async function PatientDetailPage({
 
   const { data: patient } = await supabase
     .from("patients")
-    .select("id, full_name, date_of_birth, sex, phone, created_at")
+    .select("id, full_name, age, sex, phone, created_at")
     .eq("id", id)
     .single();
 
@@ -55,7 +55,7 @@ export default async function PatientDetailPage({
               {patient.full_name}
             </h1>
             <p className="mt-1 text-sm text-on-surface-variant">
-              {patient.date_of_birth ?? "No DOB"} &bull;{" "}
+              {patient.age !== null ? `${patient.age} years` : "No age"} &bull;{" "}
               {patient.sex ?? "Unknown sex"}
             </p>
             <div className="mt-3 flex flex-wrap gap-4 text-sm text-on-surface-variant">

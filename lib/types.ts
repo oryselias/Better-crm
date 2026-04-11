@@ -13,7 +13,7 @@ export type Patient = {
   id: string;
   clinic_id: string;
   full_name: string;
-  date_of_birth: string | null;
+  age: number | null;
   sex: "male" | "female" | "other" | "unknown" | null;
   phone: string | null;
   created_by: string | null;

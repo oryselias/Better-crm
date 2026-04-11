@@ -84,12 +84,15 @@ export function NewPatientDialog() {
 
               <div className="grid grid-cols-2 gap-3">
                 <label className="block space-y-1.5">
-                  <span className="text-sm font-medium text-on-surface">Date of Birth</span>
+                  <span className="text-sm font-medium text-on-surface">Age</span>
                   <input
-                    type="date"
-                    name="date_of_birth"
-                    data-testid="patients-dob-input"
-                    className="w-full rounded-md border border-outline-variant/30 bg-surface-container-lowest px-3 py-2.5 text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
+                    type="number"
+                    name="age"
+                    data-testid="patients-age-input"
+                    min="0"
+                    max="150"
+                    placeholder="25"
+                    className="w-full rounded-md border border-outline-variant/30 bg-surface-container-lowest px-3 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
                   />
                 </label>
                 <label className="block space-y-1.5">

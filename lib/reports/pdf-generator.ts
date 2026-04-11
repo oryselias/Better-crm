@@ -38,7 +38,7 @@ interface GenerateReportOptions {
       };
       results?: Array<{ parameterId: string; value: string | number; isAbnormal?: boolean }>;
     }>;
-    patient?: { full_name: string | null; date_of_birth: string | null; sex: string | null; phone: string | null };
+    patient?: { full_name: string | null; age: number | null; sex: string | null; phone: string | null };
     clinic?: ClinicInfo;
     referred_by?: string | null;
   };
@@ -87,7 +87,7 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
       console.log('[PDF Generator] Fetching report:', opts.reportId);
       const { data, error } = await s
         .from("lab_reports")
-        .select(`*, patient:patients(full_name,date_of_birth,sex,phone), clinic:clinics(name,tagline,address,phone,logo_url)`)
+        .select(`*, patient:patients(full_name,age,sex,phone), clinic:clinics(name,tagline,address,phone,logo_url)`)
         .eq("id", opts.reportId)
         .single();
       
@@ -209,7 +209,9 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
     doc.rect(sx, bT, cw, boxH).fill(C.light);
 
     const pName   = report.patient?.full_name ?? "Unknown";
-    const pAge    = fmtAge(report.patient?.date_of_birth ?? null);
+   const pAge = report.patient?.age !== null && report.patient?.age !== undefined
+  ? `${report.patient.age}Y`
+  : "N/A";  
     const pSex    = ((report.patient?.sex ?? "N/A").charAt(0).toUpperCase() + (report.patient?.sex ?? "").slice(1)) || "N/A";
     const rDate   = new Date(report.created_at ?? Date.now()).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
     const rNo     = report.report_no ? `${report.report_no}` : (report.id ?? opts.reportId ?? "").slice(0, 6).toUpperCase();
