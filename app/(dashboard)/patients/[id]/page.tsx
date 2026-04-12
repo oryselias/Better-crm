@@ -82,18 +82,18 @@ export default async function PatientDetailPage({
         {reports && reports.length > 0 ? (
           <ul className="divide-y divide-outline-variant/30">
             {reports.map((report) => (
-              <li key={report.id} className="flex items-center justify-between px-6 py-4">
+              <li key={report.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-6 py-4 gap-3 sm:gap-0">
                 <div>
                   <p className="text-sm font-medium text-on-surface">
                     Report #{report.report_no}
                   </p>
                   <p className="mt-0.5 text-xs text-on-surface-variant">
                     {new Date(report.created_at).toLocaleDateString("en-IN", { dateStyle: "medium" })}
-                    <span className="ml-2">Rs. {Number(report.final_amount ?? 0).toFixed(0)}</span>
+                    <span className="ml-2 inline-block">Rs. {Number(report.final_amount ?? 0).toFixed(0)}</span>
                   </p>
                 </div>
                 <span
-                  className={`inline-flex rounded-md border px-2 py-1 text-xs font-medium capitalize ${
+                  className={`inline-flex rounded-md border px-2 py-1 text-[10px] sm:text-xs font-medium capitalize shrink-0 ${
                     reportStatusColors[report.status] ?? "bg-surface-container text-on-surface-variant border-outline-variant/30"
                   }`}
                 >
