@@ -1,76 +1,51 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 10% 3.9%;
-    --radius: 0.5rem;
+@theme {
+  --color-primary: hsl(211 85% 45%);
+  --color-primary-container: hsl(213 90% 92%);
+  --color-on-primary: hsl(0 0% 100%);
+  --color-on-primary-container: hsl(212 95% 15%);
 
-    /* Material Design v3 - Accessible Medical Palette */
-    --md-primary: 211 85% 45%;
-    --md-primary-container: 213 90% 92%;
-    --md-on-primary: 0 0% 100%;
-    --md-on-primary-container: 212 95% 15%;
-    
-    --md-secondary: 210 30% 50%;
-    --md-secondary-container: 212 50% 93%;
-    --md-on-secondary: 0 0% 100%;
-    --md-on-secondary-container: 210 40% 15%;
+  --color-secondary: hsl(210 30% 50%);
+  --color-secondary-container: hsl(212 50% 93%);
+  --color-on-secondary: hsl(0 0% 100%);
+  --color-on-secondary-container: hsl(210 40% 15%);
 
-    --md-surface: 0 0% 99%;
-    --md-surface-container-lowest: 0 0% 100%;
-    --md-surface-container-low: 220 30% 96%;
-    --md-surface-container: 220 20% 94%;
-    --md-on-surface: 220 20% 15%;
-    --md-on-surface-variant: 220 15% 40%;
-    
-    --md-outline: 220 10% 55%;
-    --md-outline-variant: 220 15% 85%;
-    
-    --md-error: 0 75% 50%;
-    --md-error-container: 0 85% 95%;
-    --md-on-error: 0 0% 100%;
-    --md-on-error-container: 0 85% 20%;
+  --color-surface: hsl(0 0% 99%);
+  --color-surface-container-lowest: hsl(0 0% 100%);
+  --color-surface-container-low: hsl(220 30% 96%);
+  --color-surface-container: hsl(220 20% 94%);
+  --color-on-surface: hsl(220 20% 15%);
+  --color-on-surface-variant: hsl(220 15% 40%);
 
-    --md-warning: 35 90% 50%;
-    --md-warning-container: 35 95% 92%;
-    --md-on-warning: 0 0% 100%;
-    --md-on-warning-container: 35 90% 15%;
+  --color-outline: hsl(220 10% 55%);
+  --color-outline-variant: hsl(220 15% 85%);
 
-    --md-success: 150 70% 35%;
-    --md-success-container: 150 75% 92%;
-    --md-on-success: 0 0% 100%;
-    --md-on-success-container: 150 80% 15%;
-  }
+  --color-error: hsl(0 75% 50%);
+  --color-error-container: hsl(0 85% 95%);
+  --color-on-error: hsl(0 0% 100%);
+  --color-on-error-container: hsl(0 85% 20%);
 
-  /* ... */
+  --color-warning: hsl(35 90% 50%);
+  --color-warning-container: hsl(35 95% 92%);
+  --color-on-warning: hsl(0 0% 100%);
+  --color-on-warning-container: hsl(35 90% 15%);
+
+  --color-success: hsl(150 70% 35%);
+  --color-success-container: hsl(150 75% 92%);
+  --color-on-success: hsl(0 0% 100%);
+  --color-on-success-container: hsl(150 80% 15%);
 }
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--md-outline-variant, 220 15% 85%));
   }
   body {
-    @apply bg-background text-foreground antialiased;
+    background-color: hsl(var(--md-surface, 0 0% 99%));
+    color: hsl(var(--md-on-surface, 220 20% 15%));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }
