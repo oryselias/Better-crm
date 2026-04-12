@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { generateLabReportPDF, uploadGeneratedReport } from "@/lib/reports/pdf-generator";
 
 export const runtime = "nodejs";
@@ -27,33 +26,16 @@ export async function GET(
     const paperSize = searchParams.get("paperSize") === "A5" ? "A5" : "A4";
     const includeHeader = searchParams.get("includeHeader") !== "false";
 
-    // Tenant ownership check: resolve the caller's clinic and confirm the
-    // report belongs to it. Uses admin client to avoid RLS cookie quirks in
-    // dev/proxy setups where the RLS-scoped server client sporadically
-    // returns empty results for rows the browser client can see.
-    const admin = createSupabaseAdminClient();
-    const { data: profile } = await admin
-      .from("profiles")
-      .select("clinic_id")
-      .eq("id", user.id)
-      .maybeSingle();
-    
-    const { data: ownRow } = await admin
+    // Verify report ownership via RLS
+    // Now that middleware handles the session effectively, we don't need the admin bypass here.
+    const { data: ownRow } = await supabase
       .from("lab_reports")
-      .select("id, clinic_id")
+      .select("id")
       .eq("id", id)
       .maybeSingle();
     
     if (!ownRow) {
-      console.error('[PDF API] Report not found in database:', id);
-      return NextResponse.json({ error: "Report not found" }, { status: 404 });
-    }
-    if (!profile?.clinic_id) {
-      console.error('[PDF API] User has no clinic_id assigned. Profile:', profile);
-      return NextResponse.json({ error: "User clinic not configured" }, { status: 403 });
-    }
-    if (ownRow.clinic_id !== profile.clinic_id) {
-      console.error('[PDF API] Clinic mismatch. Report clinic:', ownRow.clinic_id, 'User clinic:', profile.clinic_id);
+      console.error('[PDF API] Report not found or access denied:', id);
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
@@ -109,11 +91,15 @@ export async function POST(
       .single();
 
     if (!report) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return NextResponse.json({ error: "Access denied or not found" }, { status: 404 });
     }
 
-    // Generate and upload PDF to storage
-    const result = await uploadGeneratedReport(id);
+    // Parse formatting options from request body
+    const body = await request.json().catch(() => ({}));
+    const paperSize: "A4" | "A5" = body?.paperSize === "A5" ? "A5" : "A4";
+
+    // Generate and upload PDF to storage with the requested paper size included again
+    const result = await uploadGeneratedReport(id, { paperSize });
 
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 500 });

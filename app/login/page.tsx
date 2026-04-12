@@ -2,10 +2,8 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { LoginForm } from "@/components/auth/login-form";
-import { hasSupabasePublicEnv } from "@/lib/supabase/env";
 
 export default function LoginPage() {
-  const isConfigured = hasSupabasePublicEnv();
 
   return (
     <main className="min-h-screen px-6 py-8 md:px-10">
@@ -51,32 +49,17 @@ export default function LoginPage() {
               <p className="eyebrow">Clinic Access</p>
               <div>
                 <h2 className="text-3xl font-semibold tracking-[-0.04em]">
-                  Sign in or create an account
+                  Sign in to your account
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-on-surface-variant">
-                  Use Google or an email and password. New users can sign up
-                  below — your clinic profile is linked after first login.
+                  Use Google or your email and password to access the clinic dashboard.
                 </p>
               </div>
             </div>
 
-            {!isConfigured ? (
-              <div className="rounded-[1.5rem] border border-amber-500/20 bg-amber-500/10 p-5 text-sm leading-6 text-amber-400">
-                Add the Supabase values from <code>.env.example</code> into a
-                local env file before signing in. You can verify the connection
-                at{" "}
-                <Link href="/setup/supabase" className="font-semibold underline">
-                  /setup/supabase
-                </Link>
-                .
-              </div>
-            ) : null}
-
             <Suspense>
-              <LoginForm disabled={!isConfigured} />
+              <LoginForm />
             </Suspense>
-
-
           </div>
         </section>
       </div>
