@@ -288,7 +288,7 @@ export default function NewReportPage() {
 
       {/* Form Content */}
       <div className="mx-auto max-w-4xl px-4 pb-12">
-        <div className="surface rounded-lg border border-outline-variant/30 p-6 shadow-sm">
+        <div className="surface rounded-lg border border-outline-variant/30 p-4 sm:p-6 shadow-sm">
           {/* Step 1: Patient Selection */}
           {step === 1 && (
             <div>
@@ -660,12 +660,12 @@ export default function NewReportPage() {
                           {/* Results entry table matching Niglabs flow */}
                           {test.parameters && test.parameters.length > 0 ? (
                             <div className="overflow-x-auto">
-                              <table className="w-full text-sm">
+                              <table className="w-full text-sm whitespace-nowrap">
                                 <thead className="border-b border-outline-variant/30">
                                   <tr>
-                                    <th className="py-2 text-left font-medium text-on-surface-variant">Parameter</th>
-                                    <th className="py-2 text-left font-medium text-on-surface-variant">Result</th>
-                                    <th className="py-2 text-left font-medium text-on-surface-variant">Reference Range</th>
+                                    <th className="py-2 pr-4 text-left font-medium text-on-surface-variant">Parameter</th>
+                                    <th className="py-2 pr-4 text-left font-medium text-on-surface-variant">Result</th>
+                                    <th className="py-2 pr-4 text-left font-medium text-on-surface-variant">Reference Range</th>
                                   </tr>
                                 </thead>
                                 <tbody>

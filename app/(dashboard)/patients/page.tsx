@@ -47,18 +47,24 @@ export default async function PatientsPage({
             Manage clinic patient records and history.
           </p>
         </div>
-        <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
           <Suspense>
-            <PatientSearch />
+            <div className="flex-1 sm:flex-none">
+              <PatientSearch />
+            </div>
           </Suspense>
-          <Link
-            href="/lab-report/new"
-            data-testid="patients-create-report-link"
-            className="rounded-xl border border-outline-variant/30 bg-surface-container px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container-highest"
-          >
-            Create Report
-          </Link>
-          <NewPatientDialog />
+          <div className="flex gap-3">
+            <Link
+              href="/lab-report/new"
+              data-testid="patients-create-report-link"
+              className="flex-1 text-center rounded-xl border border-outline-variant/30 bg-surface-container px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container-highest"
+            >
+              Create Report
+            </Link>
+            <div className="flex-1">
+              <NewPatientDialog />
+            </div>
+          </div>
         </div>
       </div>
 

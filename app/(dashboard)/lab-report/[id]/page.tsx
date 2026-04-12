@@ -100,7 +100,7 @@ export default function LabReportViewPage() {
   // '' = All Departments
   const categoryOptions = useMemo(() =>
     Array.from(new Set(testCatalog.map((t) => t.category || 'Other'))).sort((a, b) => a.localeCompare(b)),
-  [testCatalog]);
+    [testCatalog]);
 
   const selectedIdSet = useMemo(() => new Set(selectedTests.map((t) => t.id)), [selectedTests]);
   const availableTests = useMemo(() => testCatalog.filter((t) => !selectedIdSet.has(t.id)), [testCatalog, selectedIdSet]);
@@ -135,7 +135,7 @@ export default function LabReportViewPage() {
       }),
     }))
     : report?.tests || [],
-  [editing, selectedTests, results, report]);
+    [editing, selectedTests, results, report]);
 
   // No auto-select: default is "All Departments" (empty string)
 
@@ -476,7 +476,7 @@ export default function LabReportViewPage() {
 
       {/* Print-friendly Report */}
       <div className="mx-auto max-w-4xl p-4 print:p-0">
-        <div className="surface rounded-lg border border-outline-variant/30 p-8 shadow-sm print:border-none print:shadow-none">
+        <div className="surface rounded-lg border border-outline-variant/30 p-4 sm:p-8 shadow-sm print:border-none print:shadow-none">
           {/* Clinic Header */}
           <div className="mb-8 text-center">
             <h2 className="text-2xl font-bold text-on-surface">
@@ -608,8 +608,8 @@ export default function LabReportViewPage() {
                     : selectedCategory
                       ? `Showing tests from ${selectedCategory}. Search within this department or pick from the dropdown.`
                       : selectedCategory
-                    ? `Showing tests from ${selectedCategory}. Type to search or click to add.`
-                    : 'Showing all tests. Filter by department or type to search.'}
+                        ? `Showing tests from ${selectedCategory}. Type to search or click to add.`
+                        : 'Showing all tests. Filter by department or type to search.'}
               </div>
 
               <div className="mt-4 space-y-3">
@@ -618,7 +618,7 @@ export default function LabReportViewPage() {
                     key={test.id}
                     className="flex items-center justify-between gap-4 rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3"
                   >
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p className="font-medium text-on-surface">{test.name}</p>
                       <p className="text-xs text-on-surface-variant">
                         {test.category || 'Other'} · {test.code}
@@ -627,7 +627,7 @@ export default function LabReportViewPage() {
                     <button
                       type="button"
                       onClick={() => handleRemoveTest(test)}
-                      className="rounded-full border border-outline-variant/30 px-3 py-1.5 text-xs font-medium text-on-surface-variant transition-colors hover:bg-surface hover:text-on-surface"
+                      className="shrink-0 rounded-full border border-outline-variant/30 px-3 py-1.5 text-xs font-medium text-on-surface-variant transition-colors hover:bg-surface hover:text-on-surface"
                     >
                       Remove
                     </button>
@@ -699,14 +699,14 @@ export default function LabReportViewPage() {
                         {dept}
                       </h4>
                     </div>
-                    <table className="w-full text-sm mb-2">
+                    <table className="w-full text-sm mb-2 whitespace-nowrap">
                       <thead>
                         <tr className="border-b border-outline-variant/30">
-                          <th className="pb-2 text-left font-medium text-on-surface-variant">Test</th>
-                          <th className="pb-2 text-right font-medium text-on-surface-variant">Result</th>
-                          <th className="pb-2 text-right font-medium text-on-surface-variant">Unit</th>
-                          <th className="pb-2 text-right font-medium text-on-surface-variant">Normal Range</th>
-                          <th className="pb-2 text-right font-medium text-on-surface-variant">Flag</th>
+                          <th className="pb-2 pr-4 text-left font-medium text-on-surface-variant">Test</th>
+                          <th className="pb-2 px-4 text-right font-medium text-on-surface-variant">Result</th>
+                          <th className="pb-2 px-4 text-right font-medium text-on-surface-variant">Unit</th>
+                          <th className="pb-2 px-4 text-right font-medium text-on-surface-variant">Normal Range</th>
+                          <th className="pb-2 pl-4 text-right font-medium text-on-surface-variant">Flag</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -747,28 +747,59 @@ export default function LabReportViewPage() {
                               <td className={`py-2 text-on-surface ${row.isStandaloneTest ? 'px-2 font-bold text-sm' : 'pl-6'}`}>{row.label}</td>
                               <td className={`py-2 text-right font-medium ${evaluated.isAbnormal ? 'text-red-500 font-bold' : 'text-on-surface'}`}>
                                 {editing ? (
-                                  <input
-                                    type="text"
-                                    value={(row.result?.value as string) || ''}
-                                    onChange={(e) => {
-                                      setResults((prev) => {
-                                        const existing = prev.find((item) => item.parameterId === row.parameter!.id);
-                                        if (existing) {
-                                          return prev.map((item) =>
-                                            item.parameterId === row.parameter!.id
-                                              ? { ...item, value: e.target.value }
-                                              : item
-                                          );
-                                        }
+                                  Array.isArray(row.parameter.selectOptions) && row.parameter.selectOptions.length > 0 ? (
+                                    <select
+                                      value={(row.result?.value as string) || ''}
+                                      onChange={(e) => {
+                                        setResults((prev) => {
+                                          const existing = prev.find((item) => item.parameterId === row.parameter!.id);
+                                          if (existing) {
+                                            return prev.map((item) =>
+                                              item.parameterId === row.parameter!.id
+                                                ? { ...item, value: e.target.value }
+                                                : item
+                                            );
+                                          }
 
-                                        return [
-                                          ...prev,
-                                          { parameterId: row.parameter!.id, value: e.target.value, isAbnormal: false },
-                                        ];
-                                      });
-                                    }}
-                                    className="w-24 md:w-28 rounded-md border border-outline-variant/30 bg-surface-container-lowest px-2 md:px-3 py-1.5 text-right text-base md:text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
-                                  />
+                                          return [
+                                            ...prev,
+                                            { parameterId: row.parameter!.id, value: e.target.value, isAbnormal: false },
+                                          ];
+                                        });
+                                      }}
+                                      className="w-28 md:w-32 rounded-md border border-outline-variant/30 bg-surface-container-lowest px-2 md:px-3 py-1.5 text-left text-base md:text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
+                                    >
+                                      <option value="">Select result</option>
+                                      {row.parameter.selectOptions.map((option) => (
+                                        <option key={option} value={option}>
+                                          {option}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  ) : (
+                                    <input
+                                      type="text"
+                                      value={(row.result?.value as string) || ''}
+                                      onChange={(e) => {
+                                        setResults((prev) => {
+                                          const existing = prev.find((item) => item.parameterId === row.parameter!.id);
+                                          if (existing) {
+                                            return prev.map((item) =>
+                                              item.parameterId === row.parameter!.id
+                                                ? { ...item, value: e.target.value }
+                                                : item
+                                            );
+                                          }
+
+                                          return [
+                                            ...prev,
+                                            { parameterId: row.parameter!.id, value: e.target.value, isAbnormal: false },
+                                          ];
+                                        });
+                                      }}
+                                      className="w-24 md:w-28 rounded-md border border-outline-variant/30 bg-surface-container-lowest px-2 md:px-3 py-1.5 text-right text-base md:text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
+                                    />
+                                  )
                                 ) : (
                                   row.result?.value || '—'
                                 )}
@@ -782,10 +813,10 @@ export default function LabReportViewPage() {
                               <td className="py-2 text-right">
                                 <span
                                   className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide ${evaluated.isAbnormal
-                                      ? 'bg-error-container text-on-error-container'
-                                      : evaluated.status === 'normal' || evaluated.status === 'negative'
-                                        ? 'bg-secondary-container text-on-secondary-container'
-                                        : 'bg-surface-container text-on-surface-variant'
+                                    ? 'bg-error-container text-on-error-container'
+                                    : evaluated.status === 'normal' || evaluated.status === 'negative'
+                                      ? 'bg-secondary-container text-on-secondary-container'
+                                      : 'bg-surface-container text-on-surface-variant'
                                     }`}
                                 >
                                   {evaluated.flagLabel}

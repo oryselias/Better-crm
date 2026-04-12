@@ -90,7 +90,7 @@ export default function LabReportPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="w-full text-left text-sm whitespace-nowrap">
               <thead className="border-b border-outline-variant/50 bg-surface-container-lowest text-on-surface-variant">
                 <tr>
                   <th className="px-6 py-4 font-semibold">Report No.</th>
