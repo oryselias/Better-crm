@@ -50,7 +50,7 @@ export function LabDashboard() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {[
                     { label: 'Total Reports', value: stats.total, color: 'text-on-surface' },
                     { label: 'Completed', value: stats.completed, color: 'text-success' },
@@ -94,7 +94,7 @@ export function LabDashboard() {
                         {reports.map((report) => (
                             <div
                                 key={report.id}
-                                className="flex items-center justify-between px-6 py-4 hover:bg-surface-container/40 transition-colors"
+                                className="flex flex-col sm:flex-row gap-4 sm:gap-0 items-start sm:items-center justify-between px-6 py-4 hover:bg-surface-container/40 transition-colors"
                             >
                                 <div className="flex items-center gap-4">
                                     <span className="font-mono text-xs text-on-surface-variant">
@@ -113,24 +113,26 @@ export function LabDashboard() {
                                         </p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-4">
-                                    <span className="text-sm text-on-surface-variant">
+                                <div className="flex items-center justify-between w-full sm:w-auto sm:justify-end gap-3 md:gap-4 mt-2 sm:mt-0">
+                                    <span className="text-xs md:text-sm text-on-surface-variant shrink-0">
                                         {report.tests?.length ?? 0} test{(report.tests?.length ?? 0) !== 1 ? 's' : ''}
                                     </span>
-                                    <span
-                                        className={`inline-flex rounded-md border px-2.5 py-1 text-xs font-medium capitalize ${report.status === 'completed'
-                                                ? 'border-secondary/30 bg-secondary-container text-on-secondary-container'
-                                                : 'border-warning/30 bg-warning-container text-on-warning-container'
-                                            }`}
-                                    >
-                                        {report.status}
-                                    </span>
-                                    <Link
-                                        href={`/lab-report/${report.id}`}
-                                        className="rounded-lg border border-outline-variant/30 px-3 py-1 text-xs font-medium text-on-surface hover:bg-surface-container transition-colors"
-                                    >
-                                        View
-                                    </Link>
+                                    <div className="flex items-center gap-3 md:gap-4">
+                                        <span
+                                            className={`inline-flex rounded-md border px-2 md:px-2.5 py-1 text-[10px] md:text-xs font-medium capitalize shrink-0 ${report.status === 'completed'
+                                                    ? 'border-secondary/30 bg-secondary-container text-on-secondary-container'
+                                                    : 'border-warning/30 bg-warning-container text-on-warning-container'
+                                                }`}
+                                        >
+                                            {report.status}
+                                        </span>
+                                        <Link
+                                            href={`/lab-report/${report.id}`}
+                                            className="rounded-lg border border-outline-variant/30 px-3 py-1.5 md:py-1 text-xs font-medium text-on-surface hover:bg-surface-container transition-colors shrink-0"
+                                        >
+                                            View
+                                        </Link>
+                                    </div>
                                 </div>
                             </div>
                         ))}

@@ -1,5 +1,6 @@
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { SignOutButton } from "@/components/layout/sign-out-button";
+import { MobileNav } from "@/components/layout/mobile-nav";
 
 type AppShellProps = {
   children: React.ReactNode;
@@ -9,10 +10,13 @@ type AppShellProps = {
 export function AppShell({ children, userEmail }: AppShellProps) {
   return (
     <div className="min-h-screen px-4 py-6 md:px-8 md:py-8 lg:px-12 lg:py-10">
-      <div className="mx-auto grid min-h-[calc(100vh-3rem)] max-w-[1800px] gap-8 xl:grid-cols-[260px_minmax(0,1fr)] items-start">
+      <div className="mx-auto flex flex-col xl:grid min-h-[calc(100vh-3rem)] max-w-[1800px] gap-4 xl:gap-8 xl:grid-cols-[260px_minmax(0,1fr)] xl:items-start">
+        
+        {/* Mobile Navigation */}
+        <MobileNav userEmail={userEmail} />
 
-        {/* Sidebar */}
-        <aside className="sticky top-10 flex flex-col h-[calc(100vh-5rem)]">
+        {/* Sidebar (Desktop) */}
+        <aside className="sticky top-10 hidden xl:flex flex-col h-[calc(100vh-5rem)]">
           <div className="space-y-3 px-2">
             <p className="eyebrow text-primary">Lab Workflow</p>
             <div>
@@ -42,7 +46,7 @@ export function AppShell({ children, userEmail }: AppShellProps) {
         </aside>
 
         {/* Main Content */}
-        <main className="surface rounded-3xl px-6 py-8 md:px-10 md:py-10 overflow-hidden min-h-[calc(100vh-5rem)]">
+        <main className="surface flex-1 rounded-3xl px-5 py-6 md:px-10 md:py-10 overflow-hidden min-h-[calc(100vh-8rem)] xl:min-h-[calc(100vh-5rem)]">
           <div className="animate-fade-in h-full">
             {children}
           </div>

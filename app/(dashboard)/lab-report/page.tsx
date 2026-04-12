@@ -63,7 +63,7 @@ export default function LabReportPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="surface rounded-lg border border-outline-variant/30 p-4 shadow-sm">
           <p className="text-sm text-on-surface-variant">Total Reports</p>
           <p className="text-2xl font-bold text-on-surface">{stats.total}</p>
