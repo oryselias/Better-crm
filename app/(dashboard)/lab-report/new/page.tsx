@@ -220,22 +220,22 @@ export default function NewReportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-surface-container-lowest">
+    <div className="mx-auto max-w-4xl space-y-4 sm:space-y-6">
       {/* Header */}
-      <header className="surface border-b border-outline-variant/30">
-        <div className="mx-auto max-w-4xl px-4 py-6">
-          <div className="flex items-center justify-between">
+      <header className="border-b border-outline-variant/30 pb-4">
+        <div className="px-0 pt-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-semibold tracking-[-0.04em] text-on-surface">
+              <h1 className="text-xl sm:text-2xl font-semibold tracking-[-0.04em] text-on-surface">
                 Create New Report
               </h1>
-              <p className="mt-1 text-sm text-on-surface-variant">
+              <p className="mt-1 text-xs sm:text-sm text-on-surface-variant">
                 Register patient and add test details
               </p>
             </div>
             <Link
               href="/lab-report"
-              className="inline-flex items-center gap-2 rounded-md border border-outline-variant/30 px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container"
+              className="inline-flex items-center gap-2 rounded-md border border-outline-variant/30 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-on-surface transition-colors hover:bg-surface-container shrink-0"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -247,8 +247,8 @@ export default function NewReportPage() {
       </header>
 
       {/* Progress Steps */}
-      <div className="mx-auto max-w-4xl px-4 py-6">
-        <div className="flex items-center justify-center mb-8">
+      <div className="px-0 py-2 sm:py-4">
+        <div className="flex items-center justify-center mb-6 sm:mb-8">
           {[
             { num: 1, label: 'Patient' },
             { num: 2, label: 'Tests' },
@@ -273,22 +273,22 @@ export default function NewReportPage() {
           ))}
         </div>
 
-        <div className="flex justify-center gap-8 mb-6 text-sm">
+        <div className="flex justify-center gap-4 sm:gap-8 mb-6 text-xs sm:text-sm text-center">
           <span className={step >= 1 ? 'text-primary font-medium' : 'text-on-surface-variant'}>
-            Register Patient
+            Register<br className="sm:hidden" /> Patient
           </span>
           <span className={step >= 2 ? 'text-primary font-medium' : 'text-on-surface-variant'}>
-            Select Tests
+            Select<br className="sm:hidden" /> Tests
           </span>
           <span className={step >= 3 ? 'text-primary font-medium' : 'text-on-surface-variant'}>
-            Enter Results
+            Enter<br className="sm:hidden" /> Results
           </span>
         </div>
       </div>
 
       {/* Form Content */}
-      <div className="mx-auto max-w-4xl px-4 pb-12">
-        <div className="surface rounded-lg border border-outline-variant/30 p-6 shadow-sm">
+      <div className="px-0 pb-12">
+        <div className="surface rounded-2xl border border-outline-variant/30 p-5 sm:p-6 shadow-sm">
           {/* Step 1: Patient Selection */}
           {step === 1 && (
             <div>
@@ -378,7 +378,7 @@ export default function NewReportPage() {
                         />
                       </label>
 
-                     <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <label className="block space-y-1.5">
                           <span className="text-sm font-medium text-on-surface">Age</span>
                           <input
@@ -480,7 +480,7 @@ export default function NewReportPage() {
                   <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
                 </div>
               ) : testCatalog.length === 0 ? (
-                <div className="py-8 text-center text-on-surface-variant">
+                <div className="py-8 text-center text-on-surface-variant text-sm">
                   No tests available. Please contact your administrator to set up the test catalog.
                 </div>
               ) : (
@@ -610,10 +610,10 @@ export default function NewReportPage() {
                 </div>
               )}
 
-              <div className="flex items-center justify-between mt-6 pt-4 border-t border-outline-variant/30">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-6 pt-4 border-t border-outline-variant/30">
                 <button
                   onClick={() => setStep(1)}
-                  className="rounded-xl border border-outline-variant/30 px-6 py-2.5 text-sm font-medium text-on-surface hover:bg-surface-container"
+                  className="w-full sm:w-auto rounded-xl border border-outline-variant/30 px-6 py-2.5 text-sm font-medium text-on-surface hover:bg-surface-container"
                 >
                   Back
                 </button>
@@ -621,7 +621,7 @@ export default function NewReportPage() {
                   type="button"
                   onClick={() => { if (canProceedToStep3) setStep(3); }}
                   disabled={!canProceedToStep3}
-                  className="rounded-md bg-primary px-8 py-2.5 text-sm font-medium text-on-primary hover:bg-primary/90 disabled:bg-surface-container disabled:text-on-surface-variant disabled:cursor-not-allowed cursor-pointer"
+                  className="w-full sm:w-auto rounded-md bg-primary px-8 py-2.5 text-sm font-medium text-on-primary hover:bg-primary/90 disabled:bg-surface-container disabled:text-on-surface-variant disabled:cursor-not-allowed cursor-pointer"
                 >
                   Next: Enter Results
                 </button>
@@ -692,9 +692,9 @@ export default function NewReportPage() {
                                                   return [...prev, { parameterId: param.id, value: e.target.value, isAbnormal: false }];
                                                 });
                                               }}
-                                              className="w-full rounded-md border border-outline-variant/30 bg-surface-container-lowest px-3 py-1.5 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
+                                              className={`w-full min-w-[120px] text-base md:text-sm rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 md:px-3 md:py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50 ${result?.value ? 'text-on-surface font-medium' : 'text-on-surface-variant font-normal'}`}
                                             >
-                                              <option value="">Select result</option>
+                                              <option value="" className="font-normal text-on-surface-variant">Select result</option>
                                               {selectOptions.map((option) => (
                                                 <option key={option} value={option}>
                                                   {option}
@@ -714,7 +714,7 @@ export default function NewReportPage() {
                                                   return [...prev, { parameterId: param.id, value: e.target.value, isAbnormal: false }];
                                                 });
                                               }}
-                                              className="w-full rounded-md border border-outline-variant/30 bg-surface-container-lowest px-3 py-1.5 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
+                                              className="w-full min-w-[120px] text-on-surface text-base md:text-sm rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 md:px-3 md:py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
                                             />
                                           )}
                                         </td>
@@ -757,28 +757,33 @@ export default function NewReportPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between mt-6 pt-4 border-t border-outline-variant/30">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-6 pt-4 border-t border-outline-variant/30">
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="rounded-xl border border-outline-variant/30 px-6 py-2.5 text-sm font-medium text-on-surface hover:bg-surface-container"
+                  className="w-full sm:w-auto rounded-xl border border-outline-variant/30 px-6 py-2.5 text-sm font-medium text-on-surface hover:bg-surface-container"
                 >
                   Back
                 </button>
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                   <button
                     onClick={handleSavePending}
                     disabled={!canSubmit || savingPending}
-                    className="rounded-xl border border-outline-variant/30 px-4 py-2.5 text-sm font-medium text-on-surface hover:bg-surface-container disabled:opacity-50"
+                    className="w-full sm:w-auto rounded-xl border border-outline-variant/30 px-4 py-2.5 text-sm font-medium text-on-surface hover:bg-surface-container disabled:opacity-50"
                   >
                     {savingPending ? 'Saving...' : 'Save as Pending'}
                   </button>
                   <button
                     onClick={handleSubmit}
                     disabled={!canSubmit || submitting}
-                    className="rounded-md bg-secondary px-6 py-2.5 text-sm font-medium text-on-secondary hover:bg-secondary/90 disabled:bg-surface-container disabled:text-on-surface-variant"
+                    className="w-full sm:w-auto rounded-md bg-secondary px-6 py-2.5 text-sm font-medium text-on-secondary hover:bg-secondary/90 disabled:bg-surface-container disabled:text-on-surface-variant"
                   >
-                    {submitting ? 'Creating...' : 'Create & Print'}
+                    {submitting ? 'Creating...' : (
+                      <>
+                        <span className="sm:hidden">Create Report</span>
+                        <span className="hidden sm:inline">Create & Print</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
