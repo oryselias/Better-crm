@@ -287,8 +287,8 @@ export default function NewReportPage() {
       </div>
 
       {/* Form Content */}
-      <div className="mx-auto max-w-4xl px-4 pb-12">
-        <div className="surface rounded-lg border border-outline-variant/30 p-4 sm:p-6 shadow-sm">
+      <div className="mx-auto max-w-4xl px-0 sm:px-4 pb-12">
+        <div className="surface rounded-2xl sm:rounded-lg border border-outline-variant/30 p-3 sm:p-6 shadow-sm">
           {/* Step 1: Patient Selection */}
           {step === 1 && (
             <div>
@@ -760,7 +760,7 @@ export default function NewReportPage() {
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-6 pt-4 border-t border-outline-variant/30">
                 <button
                   type="button"
-                  onClick={() => setStep(1)}
+                  onClick={() => setStep(2)}
                   className="w-full sm:w-auto rounded-xl border border-outline-variant/30 px-6 py-2.5 text-sm font-medium text-on-surface hover:bg-surface-container"
                 >
                   Back

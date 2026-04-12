@@ -9,7 +9,7 @@ type AppShellProps = {
 
 export function AppShell({ children, userEmail }: AppShellProps) {
   return (
-    <div className="min-h-screen px-4 py-6 md:px-8 md:py-8 lg:px-12 lg:py-10">
+    <div className="min-h-screen px-2 py-4 sm:px-4 sm:py-6 md:px-8 md:py-8 lg:px-12 lg:py-10 pb-20 xl:pb-10">
       <div className="mx-auto flex flex-col xl:grid min-h-[calc(100vh-3rem)] max-w-[1800px] gap-4 xl:gap-8 xl:grid-cols-[260px_minmax(0,1fr)] xl:items-start">
         
         {/* Mobile Navigation */}
@@ -46,7 +46,7 @@ export function AppShell({ children, userEmail }: AppShellProps) {
         </aside>
 
         {/* Main Content */}
-        <main className="surface flex-1 rounded-3xl px-5 py-6 md:px-10 md:py-10 overflow-hidden min-h-[calc(100vh-8rem)] xl:min-h-[calc(100vh-5rem)]">
+        <main className="surface flex-1 rounded-2xl md:rounded-3xl px-3 py-6 sm:px-5 md:px-10 md:py-10 overflow-hidden min-h-[calc(100vh-8rem)] xl:min-h-[calc(100vh-5rem)]">
           <div className="animate-fade-in h-full">
             {children}
           </div>

@@ -38,7 +38,7 @@ function PatientIcon({ className = "h-4 w-4" }: IconProps) {
   );
 }
 
-const navItems = [
+export const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: DashboardIcon },
   { href: "/patients", label: "Patients", icon: PatientIcon },
   { href: "/lab-report", label: "Lab Reports", icon: ReportIcon },

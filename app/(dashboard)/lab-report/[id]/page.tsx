@@ -371,6 +371,7 @@ export default function LabReportViewPage() {
           <div className="flex items-center gap-4">
             <Link
               href="/lab-report"
+              aria-label="Back to reports"
               className="flex items-center gap-2 rounded-lg p-2 text-on-surface-variant hover:bg-surface-container shrink-0"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -451,6 +452,7 @@ export default function LabReportViewPage() {
             <button
               onClick={handleDownloadPdf}
               disabled={generatingPdf || editing}
+              aria-label="Download PDF"
               className="inline-flex items-center gap-2 rounded-full bg-info px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-medium text-white hover:bg-info/90 disabled:opacity-50 shrink-0"
               title="Download PDF"
             >
@@ -462,6 +464,7 @@ export default function LabReportViewPage() {
             <button
               onClick={handlePrint}
               disabled={printingPdf || editing}
+              aria-label="Print"
               className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-medium text-on-surface hover:bg-surface-container disabled:opacity-50 shrink-0"
               title="Print"
             >
@@ -475,8 +478,8 @@ export default function LabReportViewPage() {
       </header>
 
       {/* Print-friendly Report */}
-      <div className="mx-auto max-w-4xl p-4 print:p-0">
-        <div className="surface rounded-lg border border-outline-variant/30 p-4 sm:p-8 shadow-sm print:border-none print:shadow-none">
+      <div className="mx-auto max-w-4xl px-0 sm:px-4 py-4 print:p-0">
+        <div className="surface rounded-2xl sm:rounded-lg border border-outline-variant/30 p-3 sm:p-8 shadow-sm print:border-none print:shadow-none">
           {/* Clinic Header */}
           <div className="mb-8 text-center">
             <h2 className="text-2xl font-bold text-on-surface">
