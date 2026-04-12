@@ -21,20 +21,25 @@
   --color-outline: hsl(220 10% 55%);
   --color-outline-variant: hsl(220 15% 85%);
 
-  --color-error: hsl(0 75% 50%);
-  --color-error-container: hsl(0 85% 95%);
-  --color-on-error: hsl(0 0% 100%);
-  --color-on-error-container: hsl(0 85% 20%);
+  --color-success: hsl(150 70% 35%);
+  --color-success-container: hsl(150 75% 92%);
+  --color-on-success: hsl(0 0% 100%);
+  --color-on-success-container: hsl(150 80% 15%);
+
+  --color-info: hsl(210 85% 50%);
+  --color-info-container: hsl(210 80% 92%);
+  --color-on-info: hsl(0 0% 100%);
+  --color-on-info-container: hsl(210 85% 15%);
 
   --color-warning: hsl(35 90% 50%);
   --color-warning-container: hsl(35 95% 92%);
   --color-on-warning: hsl(0 0% 100%);
   --color-on-warning-container: hsl(35 90% 15%);
 
-  --color-success: hsl(150 70% 35%);
-  --color-success-container: hsl(150 75% 92%);
-  --color-on-success: hsl(0 0% 100%);
-  --color-on-success-container: hsl(150 80% 15%);
+  --color-error: hsl(0 75% 50%);
+  --color-error-container: hsl(0 85% 95%);
+  --color-on-error: hsl(0 0% 100%);
+  --color-on-error-container: hsl(0 85% 20%);
 }
 
 @layer base {
