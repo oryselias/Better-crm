@@ -1,113 +1,48 @@
-import Link from "next/link";
-import { Suspense } from "react";
-
 import { LoginForm } from "@/components/auth/login-form";
-import { hasSupabasePublicEnv } from "@/lib/supabase/env";
+
+export const metadata = {
+  title: 'Login - Better CRM',
+  description: 'Sign in to access your clinic workspace.',
+};
 
 export default function LoginPage() {
-  const isConfigured = hasSupabasePublicEnv();
-
   return (
-    <main className="min-h-screen px-6 py-8 md:px-10">
-      <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-        <section className="surface relative overflow-hidden rounded-[2rem] border border-outline-variant/30 px-8 py-10 md:px-12 md:py-12">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(15,118,110,0.18),_transparent_34%),radial-gradient(circle_at_bottom_right,_rgba(20,32,51,0.12),_transparent_24%)]" />
-          <div className="relative flex h-full flex-col justify-between gap-12">
-            <div className="space-y-5">
-              <p className="eyebrow">Clinic Operations OS</p>
-              <div className="max-w-2xl space-y-4">
-                <h1
-                  className="text-4xl leading-tight font-semibold tracking-[-0.04em] text-balance md:text-6xl"
-                  style={{ fontFamily: "var(--font-display)" }}
-                >
-                  Calm control for patients, appointments, and lab review.
-                </h1>
-                <p className="max-w-xl text-base leading-7 text-on-surface-variant md:text-lg">
-                  Better CRM starts with clinic-scoped access, auditable report
-                  ingestion, and a focused admin workspace that can grow into
-                  messaging and billing without rewriting the foundation.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-3">
-              {[
-                ["Clinic isolation", "Single-clinic auth and RLS from day one."],
-                ["Traceable ingestion", "Raw files, parsed payloads, and review state stay linked."],
-                ["Operator-ready UI", "A premium shell with room for real workflows, not demo clutter."],
-              ].map(([title, copy]) => (
-                <div key={title} className="rounded-[1.5rem] border border-outline-variant/30 bg-surface-container p-5">
-                  <p className="text-sm font-semibold tracking-[-0.02em]">{title}</p>
-                  <p className="mt-2 text-sm leading-6 text-on-surface-variant">{copy}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="surface flex rounded-[2rem] border border-outline-variant/30 px-6 py-8 md:px-8">
-          <div className="m-auto w-full max-w-md space-y-6">
-            <div className="space-y-3">
-              <p className="eyebrow">Clinic Access</p>
-              <div>
-                <h2 className="text-3xl font-semibold tracking-[-0.04em]">
-                  Sign in or create an account
-                </h2>
-                <p className="mt-2 text-sm leading-6 text-on-surface-variant">
-                  Use Google or an email and password. New users can sign up
-                  below — your clinic profile is linked after first login.
-                </p>
-              </div>
-            </div>
-
-            {!isConfigured ? (
-              <div className="rounded-[1.5rem] border border-amber-500/20 bg-amber-500/10 p-5 text-sm leading-6 text-amber-400">
-                Add the Supabase values from <code>.env.example</code> into a
-                local env file before signing in. You can verify the connection
-                at{" "}
-                <Link href="/setup/supabase" className="font-semibold underline">
-                  /setup/supabase
-                </Link>
-                .
-              </div>
-            ) : null}
-
-            <Suspense>
-              <LoginForm disabled={!isConfigured} />
-            </Suspense>
-
-            <div className="space-y-2 text-sm leading-6 text-on-surface-variant">
-              <p>Sign-in requires:</p>
-              <ul className="space-y-1">
-                <li>
-                  <code>NEXT_PUBLIC_SUPABASE_URL</code>
-                </li>
-                <li>
-                  <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code>
-                </li>
-              </ul>
-              <p>Hosted verification additionally uses:</p>
-              <ul className="space-y-1">
-                <li>
-                  <code>SUPABASE_SERVICE_ROLE_KEY</code>
-                </li>
-              </ul>
-              <p>
-                For Google sign-in, enable the Google provider in Supabase Auth
-                and add{" "}
-                <code>{`/auth/callback`}</code> under your allowed redirect URLs.
-              </p>
-              <p>
-                Need a connection check? Visit{" "}
-                <Link href="/setup/supabase" className="font-semibold text-primary-container">
-                  the Supabase verification page
-                </Link>
-                .
-              </p>
-            </div>
-          </div>
-        </section>
+    <div className="flex min-h-screen bg-surface-container-lowest selection:bg-primary/20 selection:text-primary relative overflow-hidden">
+      {/* Dynamic Background Elements - strictly constrained to viewport */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        {/* Avoid large blurs causing horizontal scroll */}
+        <div className="absolute -left-10 top-0 h-[30vh] w-[30vw] rounded-full bg-primary/5 blur-[100px] sm:blur-[120px]" />
+        <div className="absolute -right-10 bottom-0 h-[40vh] w-[40vw] rounded-full bg-secondary/5 blur-[100px] sm:blur-[120px]" />
       </div>
-    </main>
+
+      <div className="relative flex w-full max-w-md flex-col justify-center px-6 mx-auto">
+        <div className="animate-in flex flex-col items-center">
+          <div className="mb-8 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 shadow-sm ring-1 ring-primary/20">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-6 w-6 text-primary">
+              <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+              <path d="M14 3v5h5" />
+              <path d="M9 13h6" />
+              <path d="M9 17h6" />
+            </svg>
+          </div>
+          
+          <div className="text-center">
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Welcome back</h1>
+            <p className="mt-2 text-sm text-on-surface-variant">
+              Sign in to manage patient lab reports
+            </p>
+          </div>
+        </div>
+
+        <div className="animate-in-delay-1 mt-10 rounded-3xl bg-surface p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-outline-variant/30 sm:p-8">
+          <LoginForm />
+        </div>
+        
+        <div className="animate-in-delay-2 mt-8 text-center text-xs text-on-surface-variant">
+          <p>Secure clinic access portal</p>
+          <p className="mt-1 opacity-70">&copy; {new Date().getFullYear()} Better CRM</p>
+        </div>
+      </div>
+    </div>
   );
 }

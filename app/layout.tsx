@@ -1,15 +1,16 @@
-import type { Metadata, Viewport } from "next";
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
 
-import "./globals.css";
-
-export const viewport: Viewport = {
-  themeColor: "#00f2ff",
-};
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
 export const metadata: Metadata = {
-  title: "Better CRM",
-  description:
-    "Lightweight health CRM foundation with clinic-scoped workflows, repeatable lab report generation, and Supabase-backed operations.",
+  title: 'Better CRM',
+  description: 'Clinic workspace for patient registration, test selection, and printable lab reports.',
 };
 
 export default function RootLayout({
@@ -18,8 +19,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className="bg-background font-sans text-on-surface antialiased">
+    <html lang="en" className={`${inter.variable} font-sans`}>
+      <body className="bg-surface-container-lowest text-on-surface min-h-screen selection:bg-primary/20 selection:text-primary">
         {children}
       </body>
     </html>
