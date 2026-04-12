@@ -367,18 +367,18 @@ export default function LabReportViewPage() {
     <div className="min-h-screen bg-surface-container-lowest">
       {/* Non-print header */}
       <header className="surface border-b border-outline-variant/30 print:hidden">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-4">
+        <div className="mx-auto flex max-w-4xl flex-col md:flex-row md:items-center justify-between px-3 py-3 gap-3 md:gap-0">
+          <div className="flex items-center gap-3">
             <Link
               href="/lab-report"
-              className="flex items-center gap-2 rounded-lg p-2 text-on-surface-variant hover:bg-surface-container"
+              className="flex items-center gap-2 rounded-lg p-2 text-on-surface-variant hover:bg-surface-container shrink-0"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
             </Link>
-            <div>
-              <h1 className="text-xl font-semibold text-on-surface">
+            <div className="min-w-0">
+              <h1 className="text-xl font-semibold text-on-surface truncate">
                 Report #{report.report_no || report.id.slice(0, 8)}
               </h1>
               <p className="text-sm text-on-surface-variant">
@@ -386,30 +386,31 @@ export default function LabReportViewPage() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-4 rounded-lg bg-surface-container-high px-3 py-1.5 mr-2">
-              <label className="flex items-center gap-2 text-sm text-on-surface cursor-pointer">
-                <span className="text-on-surface-variant">Size:</span>
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 md:gap-3 w-full md:w-auto">
+            <div className="flex items-center gap-3 rounded-lg bg-surface-container-high px-3 py-1.5 mr-0 md:mr-2 overflow-x-auto text-sm shrink-0 whitespace-nowrap">
+              <label className="flex items-center gap-2 text-on-surface cursor-pointer shrink-0">
+                <span className="text-on-surface-variant hidden sm:inline">Size:</span>
                 <select
                   value={paperSize}
                   onChange={(e) => setPaperSize(e.target.value as "A4" | "A5")}
-                  className="rounded border border-outline-variant/30 bg-surface-container py-0.5 px-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer"
+                  className="rounded border border-outline-variant/30 bg-surface-container py-0.5 px-2 focus:outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer"
                 >
                   <option value="A4">A4</option>
                   <option value="A5">A5</option>
                 </select>
               </label>
 
-              <div className="h-4 w-px bg-outline-variant/30"></div>
+              <div className="h-4 w-px bg-outline-variant/30 shrink-0"></div>
 
-              <label className="flex items-center gap-2 text-sm text-on-surface cursor-pointer">
+              <label className="flex items-center gap-2 text-on-surface cursor-pointer shrink-0">
                 <input
                   type="checkbox"
                   checked={includeHeader}
                   onChange={(e) => setIncludeHeader(e.target.checked)}
                   className="h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary cursor-pointer"
                 />
-                Header
+                <span className="hidden sm:inline">Header</span>
+                <span className="sm:hidden">Hdr</span>
               </label>
             </div>
 
@@ -417,9 +418,9 @@ export default function LabReportViewPage() {
               <button
                 onClick={handleComplete}
                 disabled={updating || editing}
-                className="rounded-full bg-secondary px-4 py-2 text-sm font-medium text-on-secondary hover:bg-secondary/90 disabled:opacity-50"
+                className="rounded-full bg-secondary px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-medium text-on-secondary hover:bg-secondary/90 disabled:opacity-50 shrink-0"
               >
-                {updating ? 'Saving...' : 'Mark Complete'}
+                {updating ? 'Saving...' : 'Complete'}
               </button>
             )}
             {editing ? (
@@ -427,45 +428,47 @@ export default function LabReportViewPage() {
                 <button
                   onClick={handleCancelEditing}
                   disabled={savingEdits}
-                  className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 px-4 py-2 text-sm font-medium text-on-surface hover:bg-surface-container disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-medium text-on-surface hover:bg-surface-container disabled:opacity-50 shrink-0"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSaveEdits}
                   disabled={savingEdits}
-                  className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:bg-primary/90 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-full bg-primary px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-medium text-on-primary hover:bg-primary/90 disabled:opacity-50 shrink-0"
                 >
-                  {savingEdits ? 'Saving...' : 'Save Changes'}
+                  {savingEdits ? 'Saving...' : 'Save'}
                 </button>
               </>
             ) : (
               <button
                 onClick={handleStartEditing}
-                className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 px-4 py-2 text-sm font-medium text-on-surface hover:bg-surface-container"
+                className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-medium text-on-surface hover:bg-surface-container shrink-0"
               >
-                Edit Report
+                Edit
               </button>
             )}
             <button
               onClick={handleDownloadPdf}
               disabled={generatingPdf || editing}
-              className="inline-flex items-center gap-2 rounded-full bg-info px-4 py-2 text-sm font-medium text-white hover:bg-info/90 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-full bg-info px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-medium text-white hover:bg-info/90 disabled:opacity-50 shrink-0"
+              title="Download PDF"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              {generatingPdf ? 'Generating...' : 'Download PDF'}
+              <span className="hidden sm:inline">{generatingPdf ? '...' : 'PDF'}</span>
             </button>
             <button
               onClick={handlePrint}
               disabled={printingPdf || editing}
-              className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 px-4 py-2 text-sm font-medium text-on-surface hover:bg-surface-container disabled:opacity-50"
+              className="hidden sm:inline-flex items-center gap-2 rounded-full border border-outline-variant/30 px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-medium text-on-surface hover:bg-surface-container disabled:opacity-50 shrink-0"
+              title="Print"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
               </svg>
-              {printingPdf ? 'Preparing...' : 'Print'}
+              <span className="hidden sm:inline">{printingPdf ? '...' : 'Print'}</span>
             </button>
           </div>
         </div>
@@ -473,7 +476,7 @@ export default function LabReportViewPage() {
 
       {/* Print-friendly Report */}
       <div className="mx-auto max-w-4xl p-4 print:p-0">
-        <div className="surface rounded-lg border border-outline-variant/30 p-8 shadow-sm print:border-none print:shadow-none">
+        <div className="surface rounded-lg border border-outline-variant/30 p-4 md:p-8 shadow-sm print:border-none print:shadow-none">
           {/* Clinic Header */}
           <div className="mb-8 text-center">
             <h2 className="text-2xl font-bold text-on-surface">
@@ -485,7 +488,7 @@ export default function LabReportViewPage() {
           {/* Patient Info */}
           <div className="mb-6 rounded-xl bg-surface-container p-4">
             <h3 className="mb-3 text-sm font-semibold text-on-surface-variant">Patient Information</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
               <div>
                 <p className="text-on-surface-variant">Name</p>
                 <p className="font-medium text-on-surface">{report.patient?.full_name || 'N/A'}</p>
@@ -510,10 +513,10 @@ export default function LabReportViewPage() {
                     value={referredBy}
                     onChange={(e) => setReferredBy(e.target.value)}
                     placeholder="e.g. Dr. Sharma — leave empty for Self"
-                    className="w-full rounded-lg border border-outline-variant/30 bg-surface-container-lowest px-3 py-1.5 text-sm text-on-surface placeholder:text-on-surface-variant focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
+                    className="w-full max-w-full rounded-lg border border-outline-variant/30 bg-surface-container-lowest px-3 py-1.5 text-base md:text-sm text-on-surface placeholder:text-on-surface-variant focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
                   />
                 ) : (
-                  <p className="font-medium text-on-surface">
+                  <p className="font-medium text-on-surface truncate">
                     {report.referred_by || 'Self'}
                   </p>
                 )}
@@ -600,13 +603,11 @@ export default function LabReportViewPage() {
                   ? 'Loading available tests...'
                   : testSearchTerm
                     ? suggestedTests.length > 0
-                      ? `Showing the top ${suggestedTests.length} matches. Pick a test from the dropdown to add it.`
+                      ? `${suggestedTests.length} match${suggestedTests.length === 1 ? '' : 'es'}${selectedCategory ? ` in ${selectedCategory}` : ' across all departments'}. Click to add.`
                       : 'No matching tests found. Try a different name, code, or department.'
                     : selectedCategory
-                      ? `Showing tests from ${selectedCategory}. Search within this department or pick from the dropdown.`
-                      : selectedCategory
-                    ? `Showing tests from ${selectedCategory}. Type to search or click to add.`
-                    : 'Showing all tests. Filter by department or type to search.'}
+                      ? `Showing tests from ${selectedCategory}. Type to search or click to add.`
+                      : 'Showing all tests. Filter by department or type to search.'}
               </div>
 
               <div className="mt-4 space-y-3">
@@ -696,14 +697,21 @@ export default function LabReportViewPage() {
                         {dept}
                       </h4>
                     </div>
-                    <table className="w-full text-sm mb-2">
+                    <table className="w-full table-fixed text-sm mb-2">
+                      <colgroup>
+                        {/* Mobile: Test 43% | Result 22% | (Unit hidden) | NormalRange 35% */}
+                        {/* Desktop: Test 45% | Result 18% | Unit 12% | NormalRange 25% */}
+                        <col className="w-[43%] sm:w-[45%]" />
+                        <col className="w-[22%] sm:w-[18%]" />
+                        <col className="hidden sm:table-column sm:w-[12%]" />
+                        <col className="w-[35%] sm:w-[25%]" />
+                      </colgroup>
                       <thead>
                         <tr className="border-b border-outline-variant/30">
                           <th className="pb-2 text-left font-medium text-on-surface-variant">Test</th>
                           <th className="pb-2 text-right font-medium text-on-surface-variant">Result</th>
-                          <th className="pb-2 text-right font-medium text-on-surface-variant">Unit</th>
+                          <th className="pb-2 text-right font-medium text-on-surface-variant hidden sm:table-cell">Unit</th>
                           <th className="pb-2 text-right font-medium text-on-surface-variant">Normal Range</th>
-                          <th className="pb-2 text-right font-medium text-on-surface-variant">Flag</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -711,7 +719,7 @@ export default function LabReportViewPage() {
                           if (row.isTestHeader) {
                             return (
                               <tr key={row.key} className="bg-surface-container/30 border-b border-outline-variant/10">
-                                <td colSpan={5} className="py-2.5 px-2 font-bold text-on-surface text-sm">{row.label}</td>
+                                <td colSpan={4} className="py-2.5 px-2 font-bold text-on-surface text-sm">{row.label}</td>
                               </tr>
                             );
                           }
@@ -723,8 +731,7 @@ export default function LabReportViewPage() {
                                 <td className="py-2 text-right font-medium text-on-surface">
                                   {row.result?.value || '—'}
                                 </td>
-                                <td className="py-2 text-right text-on-surface-variant">—</td>
-                                <td className="py-2 text-right text-on-surface-variant">—</td>
+                                <td className="py-2 text-right text-on-surface-variant hidden sm:table-cell">—</td>
                                 <td className="py-2 text-right text-on-surface-variant">—</td>
                               </tr>
                             );
@@ -744,49 +751,68 @@ export default function LabReportViewPage() {
                               <td className={`py-2 text-on-surface ${row.isStandaloneTest ? 'px-2 font-bold text-sm' : 'pl-6'}`}>{row.label}</td>
                               <td className={`py-2 text-right font-medium ${evaluated.isAbnormal ? 'text-red-500 font-bold' : 'text-on-surface'}`}>
                                 {editing ? (
-                                  <input
-                                    type="text"
-                                    value={(row.result?.value as string) || ''}
-                                    onChange={(e) => {
-                                      setResults((prev) => {
-                                        const existing = prev.find((item) => item.parameterId === row.parameter!.id);
-                                        if (existing) {
-                                          return prev.map((item) =>
-                                            item.parameterId === row.parameter!.id
-                                              ? { ...item, value: e.target.value }
-                                              : item
-                                          );
-                                        }
+                                  Array.isArray(row.parameter.selectOptions) && row.parameter.selectOptions.length > 0 ? (
+                                    <select
+                                      value={(row.result?.value as string) || ''}
+                                      onChange={(e) => {
+                                        setResults((prev) => {
+                                          const existing = prev.find((item) => item.parameterId === row.parameter!.id);
+                                          if (existing) {
+                                            return prev.map((item) =>
+                                              item.parameterId === row.parameter!.id
+                                                ? { ...item, value: e.target.value }
+                                                : item
+                                            );
+                                          }
 
-                                        return [
-                                          ...prev,
-                                          { parameterId: row.parameter!.id, value: e.target.value, isAbnormal: false },
-                                        ];
-                                      });
-                                    }}
-                                    className="w-28 rounded-md border border-outline-variant/30 bg-surface-container-lowest px-3 py-1.5 text-right text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
-                                  />
+                                          return [
+                                            ...prev,
+                                            { parameterId: row.parameter!.id, value: e.target.value, isAbnormal: false },
+                                          ];
+                                        });
+                                      }}
+                                      className={`w-full rounded-md border border-outline-variant/30 bg-surface-container-lowest px-1.5 md:px-3 py-1.5 text-left text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50 ${row.result?.value ? 'text-on-surface font-medium' : 'text-on-surface-variant font-normal'}`}
+                                    >
+                                      <option value="" className="font-normal text-on-surface-variant">Select result</option>
+                                      {row.parameter.selectOptions.map((option) => (
+                                        <option key={option} value={option}>
+                                          {option}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  ) : (
+                                    <input
+                                      type="text"
+                                      value={(row.result?.value as string) || ''}
+                                      onChange={(e) => {
+                                        setResults((prev) => {
+                                          const existing = prev.find((item) => item.parameterId === row.parameter!.id);
+                                          if (existing) {
+                                            return prev.map((item) =>
+                                              item.parameterId === row.parameter!.id
+                                                ? { ...item, value: e.target.value }
+                                                : item
+                                            );
+                                          }
+
+                                          return [
+                                            ...prev,
+                                            { parameterId: row.parameter!.id, value: e.target.value, isAbnormal: false },
+                                          ];
+                                        });
+                                      }}
+                                      className="w-full rounded-md border border-outline-variant/30 bg-surface-container-lowest px-1.5 md:px-3 py-1.5 text-right text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
+                                    />
+                                  )
                                 ) : (
                                   row.result?.value || '—'
                                 )}
                               </td>
-                              <td className="py-2 text-right text-on-surface-variant">
+                              <td className="py-2 text-right text-on-surface-variant hidden sm:table-cell">
                                 {row.parameter.unit || '—'}
                               </td>
                               <td className={`py-2 text-right ${evaluated.isAbnormal ? 'font-semibold text-red-500' : 'text-on-surface-variant'}`}>
                                 {evaluated.referenceRange}
-                              </td>
-                              <td className="py-2 text-right">
-                                <span
-                                  className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide ${evaluated.isAbnormal
-                                      ? 'bg-error-container text-on-error-container'
-                                      : evaluated.status === 'normal' || evaluated.status === 'negative'
-                                        ? 'bg-secondary-container text-on-secondary-container'
-                                        : 'bg-surface-container text-on-surface-variant'
-                                    }`}
-                                >
-                                  {evaluated.flagLabel}
-                                </span>
                               </td>
                             </tr>
                           );
