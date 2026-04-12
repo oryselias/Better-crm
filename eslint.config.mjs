@@ -6,7 +6,7 @@ const config = [
     // BUG-015: python_scripts/.venv contained 18K+ Playwright files causing false lint errors
     ignores: [
       ".next/**", ".qmd/**", ".tools/**", ".obsidian/**",
-      "node_modules/**", "python_scripts/**", "public/sw.js",
+      "node_modules/**", "python_scripts/**", "public/sw.js", "*.js",
       // Deno Edge Functions — different runtime, not part of the Next.js build
       "supabase/functions/**",
       // WhatsApp / AI — v2 features, intentionally unused in v1

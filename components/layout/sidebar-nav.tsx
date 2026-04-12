@@ -7,7 +7,7 @@ type IconProps = {
   className?: string;
 };
 
-function DashboardIcon({ className = "h-4 w-4" }: IconProps) {
+export function DashboardIcon({ className = "h-4 w-4" }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
       <rect x="3" y="3" width="8" height="8" rx="2" />
@@ -18,7 +18,7 @@ function DashboardIcon({ className = "h-4 w-4" }: IconProps) {
   );
 }
 
-function ReportIcon({ className = "h-4 w-4" }: IconProps) {
+export function ReportIcon({ className = "h-4 w-4" }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
       <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
@@ -29,7 +29,7 @@ function ReportIcon({ className = "h-4 w-4" }: IconProps) {
   );
 }
 
-function PatientIcon({ className = "h-4 w-4" }: IconProps) {
+export function PatientIcon({ className = "h-4 w-4" }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
       <path d="M20 21a8 8 0 0 0-16 0" />
@@ -38,7 +38,7 @@ function PatientIcon({ className = "h-4 w-4" }: IconProps) {
   );
 }
 
-const navItems = [
+export const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: DashboardIcon },
   { href: "/patients", label: "Patients", icon: PatientIcon },
   { href: "/lab-report", label: "Lab Reports", icon: ReportIcon },

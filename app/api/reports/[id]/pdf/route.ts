@@ -61,7 +61,7 @@ export async function GET(
   } catch (error) {
     console.error("PDF generation error:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Unknown error" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
@@ -102,14 +102,15 @@ export async function POST(
     const result = await uploadGeneratedReport(id, { paperSize });
 
     if (!result.success) {
-      return NextResponse.json({ error: result.error }, { status: 500 });
+      console.error("PDF upload failed:", result.error);
+      return NextResponse.json({ error: "Failed to process PDF" }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, message: "PDF generated and uploaded" });
   } catch (error) {
     console.error("PDF upload error:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Unknown error" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

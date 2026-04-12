@@ -1,54 +1,56 @@
 "use client";
 
-import { useState } from "react";
-import { SidebarNav } from "./sidebar-nav";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { SignOutButton } from "./sign-out-button";
-import { Menu, X } from "lucide-react";
+import { navItems } from "./sidebar-nav";
 
-type MobileNavProps = {
-  userEmail: string;
-};
-
-export function MobileNav({ userEmail }: MobileNavProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function MobileNav({ userEmail }: { userEmail: string }) {
+  const pathname = usePathname();
 
   return (
     <div className="xl:hidden">
-      {/* Top Bar for Mobile */}
-      <div className="flex items-center justify-between surface rounded-2xl px-5 py-4 border border-outline-variant/40 mb-6">
-        <div>
-          <h1 className="text-xl font-bold tracking-tighter text-on-surface">
-            Better CRM
-          </h1>
-          <p className="text-[10px] text-on-surface-variant uppercase tracking-wider mt-0.5">
-            Lab Workflow
-          </p>
-        </div>
-
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="p-2 -mr-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-lg transition-colors"
-          aria-label="Toggle menu"
-        >
-          {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
-      </div>
-
-      {/* Mobile Menu Dropdown */}
-      {isOpen && (
-        <div className="surface rounded-2xl border border-outline-variant/40 mb-6 p-4 animate-fade-in shadow-lg">
-          <SidebarNav />
-          <div className="mt-6 pt-4 border-t border-outline-variant/30 space-y-3">
-            <div className="rounded-xl bg-surface-container-low p-4 border border-outline-variant/40">
-              <p className="text-[10px] font-bold tracking-widest text-on-surface-variant uppercase">
-                Signed in
-              </p>
-              <p className="mt-1 text-xs font-semibold text-primary truncate">{userEmail}</p>
-            </div>
-            <SignOutButton />
+      {/* Top Header */}
+      <header className="fixed left-0 right-0 top-0 z-40 border-b border-outline-variant/30 bg-surface/90 px-3 py-3 backdrop-blur-md">
+        <div className="mx-auto flex w-full max-w-4xl items-center justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl font-bold tracking-tighter text-on-surface">Better CRM</h1>
+            <p className="mt-0.5 text-[10px] font-semibold tracking-widest text-primary uppercase truncate max-w-[160px] sm:max-w-none">
+              {userEmail}
+            </p>
           </div>
+          <SignOutButton variant="icon" />
         </div>
-      )}
+      </header>
+
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-outline-variant/30 bg-surface/90 pb-2 pt-2 sm:pb-4 backdrop-blur-md">
+        <div className="mx-auto flex max-w-md items-center justify-around px-2">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const Icon = item.icon;
+            
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex w-[80px] flex-col items-center justify-center gap-1 rounded-xl p-2 transition-all active:scale-95 ${
+                  isActive ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
+                }`}
+              >
+                <div className={`flex items-center justify-center rounded-2xl px-4 py-1 transition-colors ${
+                  isActive ? "bg-primary-container/60 text-primary" : "bg-transparent"
+                }`}>
+                  <Icon className="h-5 w-5" />
+                </div>
+                <span className="text-[10px] font-medium tracking-wide">
+                  {item.label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }

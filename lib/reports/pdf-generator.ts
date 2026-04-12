@@ -406,12 +406,6 @@ function infoCell(doc: InstanceType<typeof PDFDocument>, label: string, value: s
     .text(value, x + doc.widthOfString(`${label}  :`), y, { lineBreak: false });
 }
 
-function fmtAge(dob: string | null): string {
-  if (!dob) return "N/A";
-  const d = new Date(dob), t = new Date();
-  const y = t.getFullYear() - d.getFullYear();
-  return y === 0 ? `${Math.max(0, t.getMonth() - d.getMonth())}M` : `${y}Y`;
-}
 
 function resolveResult(pid: string, res: Array<{ parameterId: string; value: string | number; isAbnormal?: boolean }>, pc: number) {
   const m = res.find(r => r.parameterId === pid);

@@ -71,6 +71,13 @@ qmd_bugs.txt
 qmd_help.txt
 *.qmd_help.txt
 coderabbit.txt
+run_checks.js
+tsc_output.log
+lint_output.log
+ts_errors.txt
+build_error_logs.txt
+build_result.txt
+build.log
 c:*
 output/
 

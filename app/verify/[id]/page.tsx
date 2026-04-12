@@ -162,18 +162,3 @@ export default async function VerifyReportPage({ params }: VerifyPageProps) {
   );
 }
 
-function formatAge(dateOfBirth: string | null): string {
-  if (!dateOfBirth) return "N/A";
-  const dob = new Date(dateOfBirth);
-  const today = new Date();
-  let years = today.getFullYear() - dob.getFullYear();
-  const birthdayPassedThisYear =
-    today.getMonth() > dob.getMonth() ||
-    (today.getMonth() === dob.getMonth() && today.getDate() >= dob.getDate());
-  if (!birthdayPassedThisYear) years--;
-  if (years > 0) return `${years}Y`;
-  let months = today.getMonth() - dob.getMonth();
-  if (today.getDate() < dob.getDate()) months--;
-  if (months < 0) months += 12;
-  return `${months}M`;
-}

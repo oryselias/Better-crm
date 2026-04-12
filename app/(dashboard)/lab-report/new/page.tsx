@@ -220,10 +220,10 @@ export default function NewReportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-surface-container-lowest">
+    <div className="mx-auto max-w-4xl space-y-4 sm:space-y-6">
       {/* Header */}
-      <header className="surface border-b border-outline-variant/30">
-        <div className="mx-auto max-w-4xl px-4 py-4 sm:py-6">
+      <header className="border-b border-outline-variant/30 pb-4">
+        <div className="px-0 pt-2">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-xl sm:text-2xl font-semibold tracking-[-0.04em] text-on-surface">
@@ -247,7 +247,7 @@ export default function NewReportPage() {
       </header>
 
       {/* Progress Steps */}
-      <div className="mx-auto max-w-4xl px-4 py-4 sm:py-6">
+      <div className="px-0 py-2 sm:py-4">
         <div className="flex items-center justify-center mb-6 sm:mb-8">
           {[
             { num: 1, label: 'Patient' },
@@ -287,8 +287,8 @@ export default function NewReportPage() {
       </div>
 
       {/* Form Content */}
-      <div className="mx-auto max-w-4xl px-4 pb-12">
-        <div className="surface rounded-lg border border-outline-variant/30 p-6 shadow-sm">
+      <div className="px-0 pb-12">
+        <div className="surface rounded-2xl border border-outline-variant/30 p-5 sm:p-6 shadow-sm">
           {/* Step 1: Patient Selection */}
           {step === 1 && (
             <div>
@@ -692,9 +692,9 @@ export default function NewReportPage() {
                                                   return [...prev, { parameterId: param.id, value: e.target.value, isAbnormal: false }];
                                                 });
                                               }}
-                                              className="w-full min-w-[120px] text-gray-900 text-base md:text-sm rounded-md border border-outline-variant/30 bg-white px-3 py-2 md:py-1.5 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
+                                              className={`w-full min-w-[120px] text-base md:text-sm rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 md:px-3 md:py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50 ${result?.value ? 'text-on-surface font-medium' : 'text-on-surface-variant font-normal'}`}
                                             >
-                                              <option value="">Select result</option>
+                                              <option value="" className="font-normal text-on-surface-variant">Select result</option>
                                               {selectOptions.map((option) => (
                                                 <option key={option} value={option}>
                                                   {option}
@@ -714,7 +714,7 @@ export default function NewReportPage() {
                                                   return [...prev, { parameterId: param.id, value: e.target.value, isAbnormal: false }];
                                                 });
                                               }}
-                                              className="w-full min-w-[120px] text-gray-900 text-base md:text-sm rounded-md border border-outline-variant/30 bg-white px-3 py-2 md:py-1.5 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
+                                              className="w-full min-w-[120px] text-on-surface text-base md:text-sm rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 md:px-3 md:py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
                                             />
                                           )}
                                         </td>
@@ -778,7 +778,12 @@ export default function NewReportPage() {
                     disabled={!canSubmit || submitting}
                     className="w-full sm:w-auto rounded-md bg-secondary px-6 py-2.5 text-sm font-medium text-on-secondary hover:bg-secondary/90 disabled:bg-surface-container disabled:text-on-surface-variant"
                   >
-                    {submitting ? 'Creating...' : 'Create & Print'}
+                    {submitting ? 'Creating...' : (
+                      <>
+                        <span className="sm:hidden">Create Report</span>
+                        <span className="hidden sm:inline">Create & Print</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>

@@ -42,7 +42,7 @@ export default async function OnboardingPage({
           </p>
         </div>
 
-        <div className="surface rounded-[2rem] border border-outline-variant/30 px-8 py-8">
+        <div className="px-2 py-8 sm:px-6 md:bg-surface md:rounded-[2rem] md:border border-outline-variant/30 md:px-8">
           <form action={createClinicAction} className="space-y-5">
             <label className="block space-y-2">
               <span className="text-sm font-medium">Clinic name</span>

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Suspense } from "react";
 
 import { LoginForm } from "@/components/auth/login-form";
@@ -6,9 +5,9 @@ import { LoginForm } from "@/components/auth/login-form";
 export default function LoginPage() {
 
   return (
-    <main className="min-h-screen px-6 py-8 md:px-10">
-      <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-        <section className="surface relative overflow-hidden rounded-[2rem] border border-outline-variant/30 px-8 py-10 md:px-12 md:py-12">
+    <main className="min-h-screen px-4 py-6 md:px-10">
+      <div className="mx-auto grid min-h-[calc(100vh-3rem)] max-w-7xl gap-4 md:gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+        <section className="hidden lg:block surface relative overflow-hidden rounded-3xl border border-outline-variant/30 px-5 py-8 md:rounded-[2rem] md:px-12 md:py-12">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(15,118,110,0.18),_transparent_34%),radial-gradient(circle_at_bottom_right,_rgba(20,32,51,0.12),_transparent_24%)]" />
           <div className="relative flex h-full flex-col justify-between gap-12">
             <div className="space-y-5">
@@ -43,7 +42,7 @@ export default function LoginPage() {
           </div>
         </section>
 
-        <section className="surface flex rounded-[2rem] border border-outline-variant/30 px-6 py-8 md:px-8">
+        <section className="flex flex-col justify-center px-4 py-12 sm:px-6 md:bg-surface md:rounded-[2rem] md:border md:border-outline-variant/30 md:px-8 md:py-8 md:shadow-sm">
           <div className="m-auto w-full max-w-md space-y-6">
             <div className="space-y-3">
               <p className="eyebrow">Clinic Access</p>

@@ -11,6 +11,7 @@ const protectedPrefixes = [
   "/test-catalog",
   "/onboarding",
   "/setup/supabase",
+  "/api",
 ];
 
 export async function proxy(request: NextRequest) {
@@ -31,6 +32,11 @@ export async function proxy(request: NextRequest) {
   const isProtected = protectedPrefixes.some((prefix) => pathname.startsWith(prefix));
 
   if (isProtected && !user) {
+    // API routes return 401 JSON instead of an HTML redirect
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     return NextResponse.redirect(loginUrl);
@@ -42,3 +48,4 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
+

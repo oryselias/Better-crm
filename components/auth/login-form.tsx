@@ -98,7 +98,7 @@ export function LoginForm() {
 
       <div className="flex items-center gap-3 text-xs font-medium uppercase tracking-[0.18em] text-on-surface-variant">
         <div className="h-px flex-1 bg-outline-variant/30" />
-        <span>Or use email</span>
+        <span className="whitespace-nowrap">Or use email</span>
         <div className="h-px flex-1 bg-outline-variant/30" />
       </div>
 
