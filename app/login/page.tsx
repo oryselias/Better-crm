@@ -76,35 +76,7 @@ export default function LoginPage() {
               <LoginForm disabled={!isConfigured} />
             </Suspense>
 
-            <div className="space-y-2 text-sm leading-6 text-on-surface-variant">
-              <p>Sign-in requires:</p>
-              <ul className="space-y-1">
-                <li>
-                  <code>NEXT_PUBLIC_SUPABASE_URL</code>
-                </li>
-                <li>
-                  <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code>
-                </li>
-              </ul>
-              <p>Hosted verification additionally uses:</p>
-              <ul className="space-y-1">
-                <li>
-                  <code>SUPABASE_SERVICE_ROLE_KEY</code>
-                </li>
-              </ul>
-              <p>
-                For Google sign-in, enable the Google provider in Supabase Auth
-                and add{" "}
-                <code>{`/auth/callback`}</code> under your allowed redirect URLs.
-              </p>
-              <p>
-                Need a connection check? Visit{" "}
-                <Link href="/setup/supabase" className="font-semibold text-primary-container">
-                  the Supabase verification page
-                </Link>
-                .
-              </p>
-            </div>
+
           </div>
         </section>
       </div>

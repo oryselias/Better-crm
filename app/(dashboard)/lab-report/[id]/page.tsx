@@ -367,18 +367,18 @@ export default function LabReportViewPage() {
     <div className="min-h-screen bg-surface-container-lowest">
       {/* Non-print header */}
       <header className="surface border-b border-outline-variant/30 print:hidden">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
+        <div className="mx-auto flex max-w-4xl flex-col md:flex-row md:items-center justify-between px-4 py-4 gap-4 md:gap-0">
           <div className="flex items-center gap-4">
             <Link
               href="/lab-report"
-              className="flex items-center gap-2 rounded-lg p-2 text-on-surface-variant hover:bg-surface-container"
+              className="flex items-center gap-2 rounded-lg p-2 text-on-surface-variant hover:bg-surface-container shrink-0"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
             </Link>
-            <div>
-              <h1 className="text-xl font-semibold text-on-surface">
+            <div className="min-w-0">
+              <h1 className="text-xl font-semibold text-on-surface truncate">
                 Report #{report.report_no || report.id.slice(0, 8)}
               </h1>
               <p className="text-sm text-on-surface-variant">
@@ -386,30 +386,31 @@ export default function LabReportViewPage() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-4 rounded-lg bg-surface-container-high px-3 py-1.5 mr-2">
-              <label className="flex items-center gap-2 text-sm text-on-surface cursor-pointer">
-                <span className="text-on-surface-variant">Size:</span>
+          <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full md:w-auto">
+            <div className="flex items-center gap-3 rounded-lg bg-surface-container-high px-3 py-1.5 mr-0 md:mr-2 overflow-x-auto text-sm shrink-0 whitespace-nowrap">
+              <label className="flex items-center gap-2 text-on-surface cursor-pointer shrink-0">
+                <span className="text-on-surface-variant hidden sm:inline">Size:</span>
                 <select
                   value={paperSize}
                   onChange={(e) => setPaperSize(e.target.value as "A4" | "A5")}
-                  className="rounded border border-outline-variant/30 bg-surface-container py-0.5 px-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer"
+                  className="rounded border border-outline-variant/30 bg-surface-container py-0.5 px-2 focus:outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer"
                 >
                   <option value="A4">A4</option>
                   <option value="A5">A5</option>
                 </select>
               </label>
 
-              <div className="h-4 w-px bg-outline-variant/30"></div>
+              <div className="h-4 w-px bg-outline-variant/30 shrink-0"></div>
 
-              <label className="flex items-center gap-2 text-sm text-on-surface cursor-pointer">
+              <label className="flex items-center gap-2 text-on-surface cursor-pointer shrink-0">
                 <input
                   type="checkbox"
                   checked={includeHeader}
                   onChange={(e) => setIncludeHeader(e.target.checked)}
                   className="h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary cursor-pointer"
                 />
-                Header
+                <span className="hidden sm:inline">Header</span>
+                <span className="sm:hidden">Hdr</span>
               </label>
             </div>
 
@@ -417,9 +418,9 @@ export default function LabReportViewPage() {
               <button
                 onClick={handleComplete}
                 disabled={updating || editing}
-                className="rounded-full bg-secondary px-4 py-2 text-sm font-medium text-on-secondary hover:bg-secondary/90 disabled:opacity-50"
+                className="rounded-full bg-secondary px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-medium text-on-secondary hover:bg-secondary/90 disabled:opacity-50 shrink-0"
               >
-                {updating ? 'Saving...' : 'Mark Complete'}
+                {updating ? 'Saving...' : 'Complete'}
               </button>
             )}
             {editing ? (
@@ -427,45 +428,47 @@ export default function LabReportViewPage() {
                 <button
                   onClick={handleCancelEditing}
                   disabled={savingEdits}
-                  className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 px-4 py-2 text-sm font-medium text-on-surface hover:bg-surface-container disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-medium text-on-surface hover:bg-surface-container disabled:opacity-50 shrink-0"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSaveEdits}
                   disabled={savingEdits}
-                  className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:bg-primary/90 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-full bg-primary px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-medium text-on-primary hover:bg-primary/90 disabled:opacity-50 shrink-0"
                 >
-                  {savingEdits ? 'Saving...' : 'Save Changes'}
+                  {savingEdits ? 'Saving...' : 'Save'}
                 </button>
               </>
             ) : (
               <button
                 onClick={handleStartEditing}
-                className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 px-4 py-2 text-sm font-medium text-on-surface hover:bg-surface-container"
+                className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-medium text-on-surface hover:bg-surface-container shrink-0"
               >
-                Edit Report
+                Edit
               </button>
             )}
             <button
               onClick={handleDownloadPdf}
               disabled={generatingPdf || editing}
-              className="inline-flex items-center gap-2 rounded-full bg-info px-4 py-2 text-sm font-medium text-white hover:bg-info/90 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-full bg-info px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-medium text-white hover:bg-info/90 disabled:opacity-50 shrink-0"
+              title="Download PDF"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              {generatingPdf ? 'Generating...' : 'Download PDF'}
+              <span className="hidden sm:inline">{generatingPdf ? '...' : 'PDF'}</span>
             </button>
             <button
               onClick={handlePrint}
               disabled={printingPdf || editing}
-              className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 px-4 py-2 text-sm font-medium text-on-surface hover:bg-surface-container disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-medium text-on-surface hover:bg-surface-container disabled:opacity-50 shrink-0"
+              title="Print"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
               </svg>
-              {printingPdf ? 'Preparing...' : 'Print'}
+              <span className="hidden sm:inline">{printingPdf ? '...' : 'Print'}</span>
             </button>
           </div>
         </div>
@@ -485,7 +488,7 @@ export default function LabReportViewPage() {
           {/* Patient Info */}
           <div className="mb-6 rounded-xl bg-surface-container p-4">
             <h3 className="mb-3 text-sm font-semibold text-on-surface-variant">Patient Information</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
               <div>
                 <p className="text-on-surface-variant">Name</p>
                 <p className="font-medium text-on-surface">{report.patient?.full_name || 'N/A'}</p>
@@ -510,10 +513,10 @@ export default function LabReportViewPage() {
                     value={referredBy}
                     onChange={(e) => setReferredBy(e.target.value)}
                     placeholder="e.g. Dr. Sharma — leave empty for Self"
-                    className="w-full rounded-lg border border-outline-variant/30 bg-surface-container-lowest px-3 py-1.5 text-sm text-on-surface placeholder:text-on-surface-variant focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
+                    className="w-full max-w-full rounded-lg border border-outline-variant/30 bg-surface-container-lowest px-3 py-1.5 text-base md:text-sm text-on-surface placeholder:text-on-surface-variant focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
                   />
                 ) : (
-                  <p className="font-medium text-on-surface">
+                  <p className="font-medium text-on-surface truncate">
                     {report.referred_by || 'Self'}
                   </p>
                 )}
@@ -764,7 +767,7 @@ export default function LabReportViewPage() {
                                         ];
                                       });
                                     }}
-                                    className="w-28 rounded-md border border-outline-variant/30 bg-surface-container-lowest px-3 py-1.5 text-right text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
+                                    className="w-24 md:w-28 rounded-md border border-outline-variant/30 bg-surface-container-lowest px-2 md:px-3 py-1.5 text-right text-base md:text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
                                   />
                                 ) : (
                                   row.result?.value || '—'

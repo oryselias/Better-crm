@@ -47,7 +47,7 @@ export default async function PatientsPage({
             Manage clinic patient records and history.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
           <Suspense>
             <PatientSearch />
           </Suspense>
