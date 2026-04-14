@@ -80,6 +80,7 @@ build_result.txt
 build.log
 c:*
 output/
+Images/
 
 # Data files (large catalog data, not for repo)
 BiochemistryTests_parameters.txt
@@ -101,3 +102,12 @@ supabase/.branches/
 
 # Windows specific ghost files
 /nul
+
+# Aider AI code review tool
+.aider*
+.aider.tags.cache.v3/
+aider-review.cmd
+
+# Code review output
+review_output/
+code_review.md

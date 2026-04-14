@@ -14,7 +14,6 @@ interface ClinicInfo {
 interface GenerateReportOptions {
   reportId?: string;
   paperSize?: "A4" | "A5";
-  includeHeader?: boolean;
   reportData?: {
     id: string;
     clinic_id?: string;
@@ -105,7 +104,6 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
     if (!report) return { success: false, error: "Report not found" };
 
     const paperSize = opts.paperSize ?? "A4";
-    const includeHeader = opts.includeHeader !== false;
     const reportTests = await hydrateReportTests(report.tests ?? [], report.clinic_id);
     const clinic: ClinicInfo = report.clinic ?? { name: null };
 
@@ -117,8 +115,10 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
         .catch(() => null)
       : null;
 
-    const marginObj = { top: includeHeader ? 50 : 140, bottom: includeHeader ? 50 : 90, left: 50, right: 50 };
-    const doc = new PDFDocument({ margin: marginObj, size: paperSize });
+    // Always print without generated header — clinics use their own pre-printed letterhead.
+    // 140pt top (~49mm) clears the letterhead area; 90pt bottom clears the pre-printed footer.
+    const marginObj = { top: 140, bottom: 90, left: 50, right: 50 };
+    const doc = new PDFDocument({ margins: marginObj, size: paperSize });
     const chunks: Uint8Array[] = [];
     doc.on("data", c => chunks.push(c));
 
@@ -158,7 +158,8 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
       infoCell(doc, "Reported Date", rDate, c3, bT + 20);
       infoCell(doc, "Report Printed on", new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }), c3, bT + 32);
 
-      doc.y = bT + boxH + 6;
+      // Extra gap after patient info box so test table doesn't ride up against it
+      doc.y = bT + boxH + 16;
     };
 
     const footer = () => {
@@ -167,71 +168,9 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
 
     const newPage = () => {
       footer();
-      doc.addPage({ margin: marginObj, size: paperSize });
+      doc.addPage({ margins: marginObj, size: paperSize });
       drawPatientInfo();
     };
-
-    // ── HEADER ──────────────────────────────────────────────────────────
-    if (includeHeader) {
-      const leftW = Math.floor(cw * 0.60);
-      const rightW = cw - leftW;
-      const startY = doc.y;
-      let leftY = startY;
-
-      // Logo image or text mark
-      if (logoBuffer) {
-        doc.image(logoBuffer, sx, leftY, { width: 40, height: 40 });
-        leftY += 44;
-      }
-
-      // Clinic name
-      doc.fillColor(C.primary).fontSize(20).font("Helvetica-Bold")
-        .text(clinic.name ?? "Laboratory", sx, leftY, { width: leftW, lineBreak: false });
-      leftY += 24;
-
-      // Tagline
-      if (clinic.tagline) {
-        doc.fillColor(C.gray).fontSize(9).font("Helvetica")
-          .text(clinic.tagline, sx, leftY, { width: leftW, lineBreak: false });
-        leftY += 13;
-      }
-
-      // Address in left column (if no right-column address)
-      if (clinic.address && !clinic.phone) {
-        doc.fillColor(C.gray).fontSize(8).font("Helvetica")
-          .text(clinic.address, sx, leftY, { width: leftW });
-        leftY = doc.y + 2;
-      }
-
-      // Right column — address + phone
-      const rightX = sx + leftW + 5;
-      let rightY = startY;
-      if (clinic.address) {
-        doc.fillColor(C.gray).fontSize(8).font("Helvetica")
-          .text(clinic.address, rightX, rightY, { width: rightW - 5, align: "right" });
-        rightY = doc.y + 2;
-      }
-      if (clinic.phone) {
-        doc.fillColor(C.gray).fontSize(8).font("Helvetica")
-          .text(clinic.phone, rightX, rightY, { width: rightW - 5, align: "right" });
-        rightY = doc.y + 2;
-      }
-
-      // Settle doc.y to whichever column is taller
-      doc.y = Math.max(leftY, rightY) + 6;
-
-      // Thin separator
-      doc.strokeColor(C.primary).lineWidth(0.5)
-        .moveTo(sx, doc.y).lineTo(sx + cw, doc.y).stroke();
-      doc.y += 6;
-
-      // Dark banner — LABORATORY TEST REPORT
-      const bannerY = doc.y;
-      doc.rect(sx, bannerY, cw, 22).fill(C.banner);
-      doc.fillColor("#ffffff").fontSize(11).font("Helvetica-Bold")
-        .text("LABORATORY TEST REPORT", sx, bannerY + 6, { width: cw, align: "center", lineBreak: false });
-      doc.y = bannerY + 22 + 8;
-    }
 
     // ── PATIENT INFO BOX ────────────────────────────────────────────────
     drawPatientInfo();
@@ -309,8 +248,12 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
       doc.fillColor("#000");
     };
 
+    /** Height of the patient-info box drawn at the top of each page (drawPatientInfo). */
+    const PATIENT_INFO_BOX_HEIGHT = 86;
+    /** Height of the table-header row drawn by drawTableHeader. */
+    const TABLE_HEADER_HEIGHT = 22;
     let ri = 0;
-    const contentSpace = uY() - marginObj.top - 86 - 22;
+    const contentSpace = uY() - marginObj.top - PATIENT_INFO_BOX_HEIGHT - TABLE_HEADER_HEIGHT;
 
     for (const [dept, tests] of deptMap) {
       if (tests.length > 0) {
@@ -406,14 +349,14 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
       }
 
       doc.fillColor(C.gray).fontSize(10).font("Helvetica-Bold")
-        .text("End of Report !", sx, doc.y, { align: "center", width: cw });
+        .text("End of Report!", sx, doc.y, { align: "center", width: cw });
 
       footer();
-      doc.end();
 
       return new Promise(res => {
         doc.on("end", () => res({ success: true, pdfBuffer: Buffer.concat(chunks.map(c => Buffer.from(c))) }));
         doc.on("error", e => { console.error("PDF error:", e); res({ success: false, error: e.message }); });
+        doc.end();
       });
     } catch (e) {
       console.error("PDF generation error:", e);

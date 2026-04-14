@@ -24,7 +24,6 @@ export async function GET(
     // Parse formatting options
     const searchParams = request.nextUrl.searchParams;
     const paperSize = searchParams.get("paperSize") === "A5" ? "A5" : "A4";
-    const includeHeader = searchParams.get("includeHeader") !== "false";
 
     // Verify report ownership via RLS
     // Now that middleware handles the session effectively, we don't need the admin bypass here.
@@ -43,7 +42,6 @@ export async function GET(
     const result = await generateLabReportPDF({
       reportId: id,
       paperSize,
-      includeHeader,
     });
 
     if (!result.success || !result.pdfBuffer) {

@@ -94,7 +94,6 @@ export default function LabReportViewPage() {
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [printingPdf, setPrintingPdf] = useState(false);
   const [paperSize, setPaperSize] = useState<"A4" | "A5">("A4");
-  const [includeHeader, setIncludeHeader] = useState(false);
   const testSearchTerm = testSearchQuery.trim().toLowerCase();
 
   // '' = All Departments
@@ -140,7 +139,7 @@ export default function LabReportViewPage() {
   // No auto-select: default is "All Departments" (empty string)
 
   const buildPdfUrl = () =>
-    `/api/reports/${reportId}/pdf?paperSize=${paperSize}&includeHeader=${includeHeader}`;
+    `/api/reports/${reportId}/pdf?paperSize=${paperSize}`;
 
   const syncEditableState = useCallback((currentReport: LabReport) => {
     setSelectedTests(
