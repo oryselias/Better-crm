@@ -1,73 +1,52 @@
 import { redirect } from "next/navigation";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { createClinicAction } from "./actions";
 
-export default async function OnboardingPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ error?: string }>;
-}) {
+import { signOutAction } from "./actions";
+
+export default async function OnboardingPage() {
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect("/login");
-  }
+  if (!user) redirect("/login");
 
-  // If they already have a profile, skip onboarding
   const { data: profile } = await supabase
     .from("profiles")
     .select("clinic_id")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
-  if (profile?.clinic_id) {
-    redirect("/dashboard");
-  }
-
-  const { error } = await searchParams;
+  if (profile?.clinic_id) redirect("/dashboard");
 
   return (
-    <main className="min-h-screen px-6 py-8 md:px-10">
-      <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-lg flex-col justify-center gap-8">
-        <div className="space-y-3">
-          <p className="eyebrow text-primary">Welcome to Better CRM</p>
-          <h1 className="text-4xl font-semibold tracking-[-0.04em]">
-            Set up your clinic
+    <main className="min-h-screen px-6 py-10">
+      <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-lg flex-col justify-center gap-6">
+        <div className="space-y-3 text-center">
+          <p className="eyebrow text-primary">Access required</p>
+          <h1 className="text-3xl font-semibold tracking-[-0.03em]">
+            Your account isn&apos;t linked to a clinic yet
           </h1>
           <p className="text-base leading-7 text-on-surface-variant">
-            You&apos;re the first user — create your clinic workspace to get started.
-            You&apos;ll be set as the admin.
+            Better CRM is invite-only. Ask your administrator to send you an
+            invite link, or sign in with an account that already has clinic
+            access.
           </p>
         </div>
 
-        <div className="px-2 py-8 sm:px-6 md:bg-surface md:rounded-[2rem] md:border border-outline-variant/30 md:px-8">
-          <form action={createClinicAction} className="space-y-5">
-            <label className="block space-y-2">
-              <span className="text-sm font-medium">Clinic name</span>
-              <input
-                name="clinicName"
-                type="text"
-                placeholder="e.g. Aether Medical"
-                required
-                className="w-full rounded-2xl border border-outline-variant/30 bg-surface-container-low px-4 py-3 outline-none transition focus:border-primary-container focus:ring-2 focus:ring-primary-container/15"
-              />
-            </label>
+        <div className="rounded-[2rem] border border-outline-variant/30 bg-surface p-6 text-sm">
+          <p className="text-on-surface-variant">Signed in as</p>
+          <p className="mt-1 font-medium">{user.email}</p>
 
+          <form action={signOutAction} className="mt-5">
             <button
               type="submit"
-              className="btn-primary inline-flex w-full items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold"
+              className="inline-flex w-full items-center justify-center rounded-2xl border border-outline-variant/30 bg-surface-container-low px-4 py-3 text-sm font-semibold hover:bg-surface-container"
             >
-              Create clinic &amp; continue
+              Sign out
             </button>
           </form>
-
-          {error ? (
-            <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-              {error}
-            </div>
-          ) : null}
         </div>
       </div>
     </main>
