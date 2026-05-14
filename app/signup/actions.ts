@@ -6,20 +6,25 @@ import { z } from "zod";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const SignupSchema = z.object({
-  token: z.string().uuid("Invalid invite token"),
+  token: z.string().trim().uuid("Invalid invite token"),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
+function signupErrorRedirect(token: string, message: string): never {
+  redirect(`/signup?token=${encodeURIComponent(token)}&error=${encodeURIComponent(message)}`);
+}
+
 export async function signupWithInviteAction(formData: FormData) {
+  const rawToken = typeof formData.get("token") === "string" ? (formData.get("token") as string).trim() : "";
+
   const parsed = SignupSchema.safeParse({
-    token: formData.get("token"),
+    token: rawToken || undefined,
     password: formData.get("password"),
   });
 
   if (!parsed.success) {
     const msg = parsed.error.issues[0].message;
-    const token = (formData.get("token") as string) ?? "";
-    redirect(`/signup?token=${encodeURIComponent(token)}&error=${encodeURIComponent(msg)}`);
+    redirect(`/signup?token=${encodeURIComponent(rawToken)}&error=${encodeURIComponent(msg)}`);
   }
 
   const { token, password } = parsed.data;
@@ -32,15 +37,18 @@ export async function signupWithInviteAction(formData: FormData) {
     .maybeSingle();
 
   if (inviteError || !invite) {
-    redirect(`/signup?error=${encodeURIComponent("Invite not found.")}`);
+    signupErrorRedirect(
+      token,
+      inviteError?.message ?? "Invite not found. Ask your admin for a new link.",
+    );
   }
 
   if (invite.used_at) {
-    redirect(`/signup?error=${encodeURIComponent("This invite has already been used.")}`);
+    signupErrorRedirect(token, "This invite has already been used.");
   }
 
   if (new Date(invite.expires_at) < new Date()) {
-    redirect(`/signup?error=${encodeURIComponent("This invite has expired.")}`);
+    signupErrorRedirect(token, "This invite has expired.");
   }
 
   // Claim the invite first to prevent race conditions/double submit.
@@ -54,7 +62,7 @@ export async function signupWithInviteAction(formData: FormData) {
     .maybeSingle();
 
   if (claimError || !claimedInvite) {
-    redirect(`/signup?error=${encodeURIComponent("This invite has already been used.")}`);
+    signupErrorRedirect(token, "This invite has already been used.");
   }
 
   const { data: created, error: userError } = await admin.auth.admin.createUser({

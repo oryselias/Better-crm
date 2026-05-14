@@ -8,13 +8,14 @@ type InviteStatus =
   | { ok: false; reason: string };
 
 async function lookupInvite(token: string | undefined): Promise<InviteStatus> {
-  if (!token) return { ok: false, reason: "Missing invite token." };
+  const normalized = token?.trim();
+  if (!normalized) return { ok: false, reason: "Missing invite token." };
 
   const admin = createSupabaseAdminClient();
   const { data: invite, error } = await admin
     .from("invites")
     .select("email, clinic_name, clinic_id, role, expires_at, used_at, token")
-    .eq("token", token)
+    .eq("token", normalized)
     .maybeSingle();
 
   if (error || !invite) return { ok: false, reason: "Invite not found." };
@@ -37,7 +38,7 @@ async function lookupInvite(token: string | undefined): Promise<InviteStatus> {
     email: invite.email,
     clinicName: clinicName ?? "",
     role: invite.role,
-    token: invite.token,
+    token: String(invite.token),
   };
 }
 
@@ -48,6 +49,24 @@ export default async function SignupPage({
 }) {
   const { token, error } = await searchParams;
   const status = await lookupInvite(token);
+
+  if (error && !token?.trim()) {
+    return (
+      <main className="min-h-screen bg-surface-container-lowest px-4 py-10">
+        <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-md flex-col justify-center gap-8">
+          <div className="rounded-[2rem] border border-outline-variant/30 bg-surface p-6 md:p-8">
+            <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+              {error}
+            </div>
+            <p className="mt-4 text-sm text-on-surface-variant">
+              Open the full invite link from your email (it includes <code className="text-xs">?token=</code>
+              ). If the problem persists, ask your administrator for a new invite.
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-surface-container-lowest px-4 py-10">
