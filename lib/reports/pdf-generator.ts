@@ -33,6 +33,7 @@ interface GenerateReportOptions {
           female_min_value?: number; female_max_value?: number;
           male_normal_range?: string; female_normal_range?: string;
           selectOptions?: string[];
+          defaultValue?: string;
         }>;
       };
       results?: Array<{ parameterId: string; value: string | number; isAbnormal?: boolean }>;
@@ -59,6 +60,7 @@ type ReportTestSnapshot = {
       female_min_value?: number; female_max_value?: number;
       male_normal_range?: string; female_normal_range?: string;
       selectOptions?: string[];
+      defaultValue?: string;
     }>;
   };
   price?: number;
@@ -213,11 +215,23 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
       const params = st.test?.parameters ?? [];
       const results = st.results ?? [];
       let testHeight = 0;
+      
       if (!params.length) {
-        testHeight = 20;
+        const v = results[0]?.value?.toString() ?? "—";
+        if (v !== "—" && v.trim() !== "") {
+          testHeight = 20;
+        }
       } else {
+        const validParams = params.filter(p => {
+          const r = resolveResult(p.id, results, params.length);
+          const raw = r?.value?.toString() ?? "—";
+          return raw !== "—" && raw.trim() !== "";
+        });
+
+        if (validParams.length === 0) return 0;
+
         if (params.length > 1) testHeight += 20;
-        for (const p of params) {
+        for (const p of validParams) {
           const r = resolveResult(p.id, results, params.length);
           const raw = r?.value?.toString() ?? "—";
           const ev = evaluateReferenceRange(p, r?.value ?? "", report.patient?.sex);
@@ -270,6 +284,7 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
         const results = st.results ?? [];
 
         const testHeight = getTestHeight(st);
+        if (testHeight === 0) continue; // Skip test entirely if no results
 
         if (doc.y + testHeight > uY() && testHeight <= contentSpace) {
           newPage(); doc.y = drawTableHeader(doc.y);
@@ -297,7 +312,13 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
           doc.fillColor("#000");
         }
 
-        for (const p of params) {
+        const validParams = params.filter(p => {
+          const r = resolveResult(p.id, results, params.length);
+          const raw = r?.value?.toString() ?? "—";
+          return raw !== "—" && raw.trim() !== "";
+        });
+
+        for (const p of validParams) {
           const r = resolveResult(p.id, results, params.length);
           const raw = r?.value?.toString() ?? "—";
           const ev = evaluateReferenceRange(p, r?.value ?? "", report.patient?.sex);

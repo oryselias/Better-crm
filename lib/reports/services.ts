@@ -4,7 +4,7 @@ import { evaluateReferenceRange, normalizeTestCatalogEntry, type SupportedSex } 
 
 export interface Patient { id: string; clinic_id: string; full_name: string; age: number | null; sex: string | null; phone: string | null; created_at: string; }
 export interface TestCatalog { id: string; name: string; code: string; category: string | null; parameters: TestParameter[]; description: string | null; is_active: boolean; }
-export interface TestParameter { id: string; name: string; unit: string; normal_range: string; male_normal_range?: string; female_normal_range?: string; selectOptions?: string[]; }
+export interface TestParameter { id: string; name: string; unit: string; normal_range: string; male_normal_range?: string; female_normal_range?: string; selectOptions?: string[]; defaultValue?: string; }
 export interface TestResult { parameterId: string; value: string|number|boolean; isAbnormal?: boolean; notes?: string; }
 export interface SelectedTest { testId: string; test?: TestCatalog; results?: TestResult[]; }
 export interface LabReport { id: string; clinic_id: string; patient_id: string; patient?: Patient; clinic?: { name: string | null }; report_no: number; status: 'pending'|'completed'; tests: SelectedTest[]; notes: string | null; referred_by: string | null; created_at: string; completed_at: string | null; created_by: string | null; }

@@ -16,6 +16,11 @@ export function NewPatientDialog() {
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    const prefix = formData.get("prefix") as string;
+    const fullName = formData.get("full_name") as string;
+    if (prefix && fullName) {
+      formData.set("full_name", `${prefix} ${fullName}`.trim());
+    }
     submit(formData);
   }
 
@@ -72,14 +77,28 @@ export function NewPatientDialog() {
                 <span className="text-sm font-medium text-on-surface">
                   Full Name <span className="text-red-400">*</span>
                 </span>
-                <input
-                  type="text"
-                  name="full_name"
-                  data-testid="patients-name-input"
-                  required
-                  placeholder="Jane Doe"
-                  className="w-full rounded-md border border-outline-variant/30 bg-surface-container-lowest px-3 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
-                />
+                <div className="flex items-center gap-2">
+                  <select
+                    name="prefix"
+                    defaultValue="Mr."
+                    className="rounded-md border border-outline-variant/30 bg-surface-container-lowest px-2 py-2.5 text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
+                  >
+                    <option value="Mr.">Mr.</option>
+                    <option value="Mrs.">Mrs.</option>
+                    <option value="Miss.">Miss.</option>
+                    <option value="Master.">Master.</option>
+                    <option value="Dr.">Dr.</option>
+                    <option value="Prof.">Prof.</option>
+                  </select>
+                  <input
+                    type="text"
+                    name="full_name"
+                    data-testid="patients-name-input"
+                    required
+                    placeholder="John Doe"
+                    className="w-full flex-1 rounded-md border border-outline-variant/30 bg-surface-container-lowest px-3 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
+                  />
+                </div>
               </label>
 
               <div className="grid grid-cols-2 gap-3">

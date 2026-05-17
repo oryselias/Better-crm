@@ -37,6 +37,7 @@ export default function NewReportPage() {
   const [showNewPatient, setShowNewPatient] = useState(false);
   const [newPatientError, setNewPatientError] = useState<string | null>(null);
   const [newPatientForm, setNewPatientForm] = useState({
+    prefix: 'Mr.',
     full_name: '',
     age: 0,         
     sex: '',
@@ -138,12 +139,16 @@ export default function NewReportPage() {
   try {
     setNewPatientError(null);
 
-    const newPatient = await createPatient(newPatientForm);
+    const newPatient = await createPatient({
+      ...newPatientForm,
+      full_name: `${newPatientForm.prefix} ${newPatientForm.full_name}`.trim()
+    });
     setPatient(newPatient);
     setShowNewPatient(false);
 
   
     setNewPatientForm({
+      prefix: 'Mr.',
       full_name: '',
       age: 0,
       sex: '',
@@ -206,6 +211,19 @@ export default function NewReportPage() {
 
       return [...prev, test];
     });
+
+    if (test.parameters) {
+      setResults(prev => {
+        const newResults = [...prev];
+        for (const param of test.parameters) {
+          if (param.defaultValue && !newResults.some(r => r.parameterId === param.id)) {
+            newResults.push({ parameterId: param.id, value: param.defaultValue, isAbnormal: false });
+          }
+        }
+        return newResults;
+      });
+    }
+
     setTestSearchQuery('');
     setShowTestPicker(Boolean(selectedCategory));
   };
@@ -368,14 +386,28 @@ export default function NewReportPage() {
                         <span className="text-sm font-medium text-on-surface">
                           Full Name <span className="text-red-400">*</span>
                         </span>
-                        <input
-                          type="text"
-                          value={newPatientForm.full_name}
-                          onChange={(e) => setNewPatientForm(p => ({ ...p, full_name: e.target.value }))}
-                          required
-                          placeholder="Jane Doe"
-                          className="w-full rounded-xl border border-outline-variant/30 bg-surface-container px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
-                        />
+                        <div className="flex items-center gap-2">
+                          <select
+                            value={newPatientForm.prefix}
+                            onChange={(e) => setNewPatientForm(p => ({ ...p, prefix: e.target.value }))}
+                            className="rounded-xl border border-outline-variant/30 bg-surface-container px-3 py-3 text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
+                          >
+                            <option value="Mr.">Mr.</option>
+                            <option value="Mrs.">Mrs.</option>
+                            <option value="Miss.">Miss.</option>
+                            <option value="Master.">Master.</option>
+                            <option value="Dr.">Dr.</option>
+                            <option value="Prof.">Prof.</option>
+                          </select>
+                          <input
+                            type="text"
+                            value={newPatientForm.full_name}
+                            onChange={(e) => setNewPatientForm(p => ({ ...p, full_name: e.target.value }))}
+                            required
+                            placeholder="John Doe"
+                            className="flex-1 rounded-xl border border-outline-variant/30 bg-surface-container px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
+                          />
+                        </div>
                       </label>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

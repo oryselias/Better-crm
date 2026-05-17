@@ -298,6 +298,19 @@ export default function LabReportViewPage() {
 
       return [...prev, test];
     });
+
+    if (test.parameters) {
+      setResults(prev => {
+        const newResults = [...prev];
+        for (const param of test.parameters) {
+          if (param.defaultValue && !newResults.some(r => r.parameterId === param.id)) {
+            newResults.push({ parameterId: param.id, value: param.defaultValue, isAbnormal: false });
+          }
+        }
+        return newResults;
+      });
+    }
+
     setTestSearchQuery('');
     setShowTestPicker(Boolean(selectedCategory));
   };
