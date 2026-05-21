@@ -67,16 +67,16 @@ type ReportTestSnapshot = {
   results?: Array<{ parameterId: string; value: string | number; isAbnormal?: boolean }>;
 };
 
-// Color palette — maroon/burgundy to match demo
+// Color palette — Grayscale / Black & White
 const C = {
-  primary: "#8B1A1A",
-  banner: "#1f1f1f",
+  primary: "#000000",
+  banner: "#000000",
   gray: "#6b7280",
   light: "#f3f4f6",
-  abnormal: "#dc2626",
-  abnormalBg: "#fef2f2",
-  critical: "#7c3aed",
-  criticalBg: "#f5f3ff",
+  abnormal: "#000000",
+  abnormalBg: "#ffffff",
+  critical: "#000000",
+  criticalBg: "#ffffff",
 };
 
 export async function generateLabReportPDF(opts: GenerateReportOptions): Promise<GenerateReportResult> {
@@ -143,7 +143,6 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
     const drawPatientInfo = () => {
       const bT = doc.y;
       const boxH = 80;
-      doc.rect(sx, bT, cw, boxH).fill(C.light);
       const c1 = sx + 10;
       const c3 = sx + cw * 0.72;
       const qrX = sx + cw * 0.42;
@@ -193,11 +192,11 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
     };
 
     const drawTableHeader = (y: number) => {
-      doc.rect(sx, y, pw, 22).fill(C.primary);
-      doc.fillColor("#fff").fontSize(9).font("Helvetica-Bold");
+      doc.fillColor(C.primary).fontSize(9).font("Helvetica-Bold");
       doc.text("TEST DESCRIPTION", sx + 5, y + 6, { width: colW.param });
       doc.text("RESULT", sx + colW.param + 5, y + 6, { width: colW.value, align: "center" });
       doc.text("REFERENCE RANGE", sx + colW.param + colW.value + 5, y + 6, { width: colW.range, align: "center" });
+      doc.moveTo(sx, y + 22).lineTo(sx + pw, y + 22).lineWidth(0.5).strokeColor("#000000").stroke();
       return y + 22;
     };
 
@@ -254,8 +253,6 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
     const drawDeptHeader = (name: string) => {
       if (doc.y + 20 > uY()) { newPage(); doc.y = drawTableHeader(doc.y); }
       const dy = doc.y;
-      doc.rect(sx, dy, pw, 20).fill("#f8f8f8");
-      doc.strokeColor("#d1d5db").lineWidth(0.5).rect(sx, dy, pw, 20).stroke();
       doc.fillColor(C.primary).fontSize(9).font("Helvetica-Bold")
         .text(name.toUpperCase(), sx + 5, dy + 5, { width: pw - 10, align: "center" });
       doc.y = dy + 20;
@@ -294,8 +291,6 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
           const v = results[0]?.value?.toString() ?? "—";
           if (doc.y + 20 > uY()) { newPage(); doc.y = drawTableHeader(doc.y); }
           const ry = doc.y;
-          if (ri % 2 === 1) doc.rect(sx, ry, pw, 20).fill(C.light);
-          doc.rect(sx, ry, pw, 20).strokeColor("#e5e7eb").lineWidth(0.5).stroke();
           doc.fillColor("#374151").fontSize(9).font("Helvetica-Bold").text(tn, sx + 5, ry + 5, { width: colW.param });
           doc.fillColor("#111827").font("Helvetica").text(v, sx + colW.param + 5, ry + 5, { width: colW.value, align: "center" });
           doc.y = ry + 20; ri++;
@@ -305,8 +300,6 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
         if (params.length > 1) {
           if (doc.y + 20 > uY()) { newPage(); doc.y = drawTableHeader(doc.y); }
           const ry = doc.y;
-          doc.rect(sx, ry, pw, 20).fill("#f8fbff");
-          doc.rect(sx, ry, pw, 20).strokeColor("#e5e7eb").lineWidth(0.5).stroke();
           doc.fillColor("#374151").fontSize(9).font("Helvetica-Bold").text(tn, sx + 5, ry + 6, { width: pw });
           doc.y = ry + 20;
           doc.fillColor("#000");
@@ -341,11 +334,6 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
 
           if (doc.y + rh > uY()) { newPage(); doc.y = drawTableHeader(doc.y); }
           const ry = doc.y;
-
-          if (crit) doc.rect(sx, ry, pw, rh).fill(C.criticalBg);
-          else if (abn) doc.rect(sx, ry, pw, rh).fill(C.abnormalBg);
-          else if (ri % 2 === 1) doc.rect(sx, ry, pw, rh).fill(C.light);
-          doc.rect(sx, ry, pw, rh).strokeColor("#e5e7eb").lineWidth(0.5).stroke();
 
           doc.fillColor(rc).fontSize(9).font(rf)
             .text(lbl, sx + paramPadX, ry + padY, { width: colW.param - paramPadX * 2 });
