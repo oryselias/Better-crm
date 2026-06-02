@@ -12,6 +12,7 @@ import {
   updateReportDetails,
 } from '@/lib/reports/services';
 import { evaluateReferenceRange } from '@/lib/reports/reference-ranges';
+import { applyCalculations } from '@/lib/reports/calculations';
 
 type VisibleReportTest = {
   testId: string;
@@ -55,6 +56,15 @@ export default function LabReportViewPage() {
   const [showTestPicker, setShowTestPicker] = useState(true);
 
   const reportId = params.id as string;
+
+  // Auto-calculate formula fields when results or selected tests change
+  useEffect(() => {
+    if (!editing) return;
+    const updatedResults = applyCalculations(results, selectedTests);
+    if (JSON.stringify(updatedResults) !== JSON.stringify(results)) {
+      setResults(updatedResults);
+    }
+  }, [results, selectedTests, editing]);
 
   useEffect(() => {
     let cancelled = false;
@@ -747,7 +757,16 @@ export default function LabReportViewPage() {
                               key={row.key}
                               className={`border-b border-outline-variant/10 ${evaluated.isAbnormal ? 'bg-red-500/5' : ''}`}
                             >
-                              <td className={`py-2 text-on-surface ${row.isStandaloneTest ? 'px-2 font-bold text-sm' : 'pl-6'}`}>{row.label}</td>
+                              <td className={`py-2 text-on-surface ${row.isStandaloneTest ? 'px-2 font-bold text-sm' : 'pl-6'}`}>
+                                <div className="flex items-center gap-1.5">
+                                  <span>{row.label}</span>
+                                  {editing && row.parameter?.formula && (
+                                    <span className="inline-flex items-center rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary tracking-wide">
+                                      Auto
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
                               <td className={`py-2 text-right font-medium ${evaluated.isAbnormal ? 'text-red-500 font-bold' : 'text-on-surface'}`}>
                                 {editing ? (
                                   Array.isArray(row.parameter.selectOptions) && row.parameter.selectOptions.length > 0 ? (
@@ -783,6 +802,7 @@ export default function LabReportViewPage() {
                                     <input
                                       type="text"
                                       value={(row.result?.value as string) || ''}
+                                      readOnly={!!row.parameter.formula}
                                       onChange={(e) => {
                                         setResults((prev) => {
                                           const existing = prev.find((item) => item.parameterId === row.parameter!.id);
@@ -800,7 +820,11 @@ export default function LabReportViewPage() {
                                           ];
                                         });
                                       }}
-                                      className="w-full rounded-md border border-outline-variant/30 bg-surface-container-lowest px-1.5 md:px-3 py-1.5 text-right text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
+                                      className={`w-full rounded-md border border-outline-variant/30 px-1.5 md:px-3 py-1.5 text-right text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50 ${
+                                        row.parameter.formula
+                                          ? 'bg-surface-container-low text-on-surface-variant/80 cursor-not-allowed'
+                                          : 'bg-surface-container-lowest'
+                                      }`}
                                     />
                                   )
                                 ) : (

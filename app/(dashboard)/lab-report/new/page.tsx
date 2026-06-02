@@ -15,6 +15,7 @@ import {
 } from '@/lib/reports/services';
 import { isValidPatientPhone } from '@/lib/patients/phone';
 import { evaluateReferenceRange } from '@/lib/reports/reference-ranges';
+import { applyCalculations } from '@/lib/reports/calculations';
 
 export default function NewReportPage() {
   const router = useRouter();
@@ -27,6 +28,14 @@ export default function NewReportPage() {
   const [results, setResults] = useState<TestResult[]>([]);
   const [notes, setNotes] = useState('');
   const [referredBy, setReferredBy] = useState('');
+
+  // Auto-calculate formula fields when results or selected tests change
+  useEffect(() => {
+    const updatedResults = applyCalculations(results, selectedTests);
+    if (JSON.stringify(updatedResults) !== JSON.stringify(results)) {
+      setResults(updatedResults);
+    }
+  }, [results, selectedTests]);
   const [submitting, setSubmitting] = useState(false);
   const [savingPending, setSavingPending] = useState(false);
 
@@ -708,7 +717,14 @@ export default function NewReportPage() {
                                     return (
                                       <tr key={param.id} className="border-b border-outline-variant/10">
                                         <td className="py-3 pr-4 font-medium text-on-surface">
-                                          <div>{param.name}</div>
+                                          <div className="flex items-center gap-1.5">
+                                            <span>{param.name}</span>
+                                            {param.formula && (
+                                              <span className="inline-flex items-center rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary tracking-wide">
+                                                Auto
+                                              </span>
+                                            )}
+                                          </div>
                                           {param.unit && <div className="text-xs font-normal text-on-surface-variant">{param.unit}</div>}
                                         </td>
                                         <td className="py-3 pr-4">
@@ -737,6 +753,7 @@ export default function NewReportPage() {
                                             <input
                                               type="text"
                                               value={(result?.value as string) || ''}
+                                              readOnly={!!param.formula}
                                               onChange={(e) => {
                                                 setResults(prev => {
                                                   const existing = prev.find(r => r.parameterId === param.id);
@@ -746,7 +763,11 @@ export default function NewReportPage() {
                                                   return [...prev, { parameterId: param.id, value: e.target.value, isAbnormal: false }];
                                                 });
                                               }}
-                                              className="w-full min-w-[120px] text-on-surface text-base md:text-sm rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 md:px-3 md:py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50"
+                                              className={`w-full min-w-[120px] text-on-surface text-base md:text-sm rounded-xl border border-outline-variant/30 px-4 py-3 md:px-3 md:py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50 ${
+                                                param.formula 
+                                                  ? 'bg-surface-container-low text-on-surface-variant/80 cursor-not-allowed' 
+                                                  : 'bg-surface-container-lowest'
+                                              }`}
                                             />
                                           )}
                                         </td>

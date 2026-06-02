@@ -76,10 +76,12 @@ VALUES
     'f1000000-0000-0000-0000-000000000003',
     'Lipid Profile', 'LIPID', 'Biochemistry', 'Cardiovascular risk lipid panel',
     '[
-      {"id":"lip-tc",  "name":"Total Cholesterol", "unit":"mg/dL", "normal_range":"<200"},
-      {"id":"lip-tg",  "name":"Triglycerides",     "unit":"mg/dL", "normal_range":"<150"},
-      {"id":"lip-hdl", "name":"HDL Cholesterol",   "unit":"mg/dL", "male_normal_range":">=40", "female_normal_range":">=50"},
-      {"id":"lip-ldl", "name":"LDL Cholesterol",   "unit":"mg/dL", "normal_range":"<100"}
+      {"id":"lip-tc",    "name":"Total Cholesterol",    "unit":"mg/dL", "normal_range":"<200"},
+      {"id":"lip-tg",    "name":"Triglycerides",        "unit":"mg/dL", "normal_range":"<150"},
+      {"id":"lip-hdl",   "name":"HDL Cholesterol",      "unit":"mg/dL", "male_normal_range":">=40", "female_normal_range":">=50"},
+      {"id":"lip-vldl",  "name":"VLDL Cholesterol",     "unit":"mg/dL", "normal_range":"<30",                     "formula":"{lip-tg} / 5"},
+      {"id":"lip-ldl",   "name":"LDL Cholesterol",      "unit":"mg/dL", "normal_range":"<100",                    "formula":"{lip-tc} - {lip-hdl} - {lip-vldl}"},
+      {"id":"lip-ratio", "name":"Total Chol/HDL Ratio", "unit":"ratio",  "normal_range":"<5.0",                    "formula":"{lip-tc} / {lip-hdl}"}
     ]'::jsonb,
     true, 500
   )

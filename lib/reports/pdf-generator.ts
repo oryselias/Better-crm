@@ -34,6 +34,7 @@ interface GenerateReportOptions {
           male_normal_range?: string; female_normal_range?: string;
           selectOptions?: string[];
           defaultValue?: string;
+          formula?: string;
         }>;
       };
       results?: Array<{ parameterId: string; value: string | number; isAbnormal?: boolean }>;
@@ -61,6 +62,7 @@ type ReportTestSnapshot = {
       male_normal_range?: string; female_normal_range?: string;
       selectOptions?: string[];
       defaultValue?: string;
+      formula?: string;
     }>;
   };
   price?: number;
