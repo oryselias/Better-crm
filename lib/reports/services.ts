@@ -1,17 +1,11 @@
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { normalizePatientPhone } from "@/lib/patients/phone";
 import { evaluateReferenceRange, normalizeTestCatalogEntry, type SupportedSex } from "@/lib/reports/reference-ranges";
+import { isSegmentParameter } from "@/lib/reports/catalog-parameters";
 
-export interface Patient { id: string; clinic_id: string; full_name: string; age: number | null; sex: string | null; phone: string | null; created_at: string; }
-export interface TestCatalog { id: string; name: string; code: string; category: string | null; parameters: TestParameter[]; description: string | null; is_active: boolean; }
-export interface TestParameter { id: string; name: string; unit: string; normal_range: string; male_normal_range?: string; female_normal_range?: string; selectOptions?: string[]; defaultValue?: string; formula?: string; }
-export interface TestResult { parameterId: string; value: string|number|boolean; isAbnormal?: boolean; notes?: string; }
-export interface SelectedTest { testId: string; test?: TestCatalog; results?: TestResult[]; }
-export interface LabReport { id: string; clinic_id: string; patient_id: string; patient?: Patient; clinic?: { name: string | null }; report_no: number; status: 'pending'|'completed'; tests: SelectedTest[]; notes: string | null; referred_by: string | null; created_at: string; completed_at: string | null; created_by: string | null; }
-export interface LabReportSummary { id: string; report_no: number; status: 'pending'|'completed'; tests: SelectedTest[]; created_at: string; patient_id?: string; patient?: { id: string; full_name: string; phone: string | null }[]; }
-export interface CreateReportParams { patientId: string; selectedTests: string[]; results: TestResult[]; notes?: string; referredBy?: string; }
-export interface UpdateReportDetailsParams extends CreateReportParams { status?: 'pending'|'completed'; }
-export interface ReportFilters { patientName?: string; status?: 'pending'|'completed'; dateFrom?: string; dateTo?: string; }
+import { type Patient, type TestCatalog, type TestParameter, type TestResult, type SelectedTest, type LabReport, type LabReportSummary, type CreateReportParams, type UpdateReportDetailsParams, type ReportFilters } from "@/lib/types";
+
+export type { Patient, TestCatalog, TestParameter, TestResult, SelectedTest, LabReport, LabReportSummary, CreateReportParams, UpdateReportDetailsParams, ReportFilters };
 
 // ── Catalog cache (5-minute TTL, shared across all calls in the same browser tab) ──
 let _catalogCache: { data: TestCatalog[]; ts: number } | null = null;
@@ -147,7 +141,17 @@ async function buildPayload(testIds: string[], results: TestResult[], sex?: Supp
   return {
     tests: testIds.map(id => {
       const t = byId.get(id)!;
-      return { testId: t.id, test: t, results: (t.parameters ?? []).map((p: TestParameter) => { const r = results.find(x => x.parameterId === p.id); const e = evaluateReferenceRange(p, r?.value ?? '', sex); return { parameterId: p.id, value: r?.value ?? '', isAbnormal: e.isAbnormal, notes: r?.notes }; }) };
+      return {
+        testId: t.id,
+        test: t,
+        results: (t.parameters ?? [])
+          .filter((p: TestParameter) => !isSegmentParameter(p))
+          .map((p: TestParameter) => {
+            const r = results.find((x) => x.parameterId === p.id);
+            const e = evaluateReferenceRange(p, r?.value ?? "", sex);
+            return { parameterId: p.id, value: r?.value ?? "", isAbnormal: e.isAbnormal, notes: r?.notes };
+          }),
+      };
     }),
   };
 }

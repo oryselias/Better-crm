@@ -16,6 +16,7 @@ import {
 import { isValidPatientPhone } from '@/lib/patients/phone';
 import { evaluateReferenceRange } from '@/lib/reports/reference-ranges';
 import { applyCalculations } from '@/lib/reports/calculations';
+import { isSegmentParameter } from '@/lib/reports/catalog-parameters';
 
 export default function NewReportPage() {
   const router = useRouter();
@@ -225,6 +226,7 @@ export default function NewReportPage() {
       setResults(prev => {
         const newResults = [...prev];
         for (const param of test.parameters) {
+          if (isSegmentParameter(param)) continue;
           if (param.defaultValue && !newResults.some(r => r.parameterId === param.id)) {
             newResults.push({ parameterId: param.id, value: param.defaultValue, isAbnormal: false });
           }
@@ -711,6 +713,15 @@ export default function NewReportPage() {
                                 </thead>
                                 <tbody>
                                   {test.parameters.map((param) => {
+                                    if (isSegmentParameter(param)) {
+                                      return (
+                                        <tr key={param.id} className="border-b border-outline-variant/10 bg-surface-container/30">
+                                          <td colSpan={3} className="py-2 pl-4 pr-4 text-sm font-bold text-on-surface">
+                                            {param.name}
+                                          </td>
+                                        </tr>
+                                      );
+                                    }
                                     const result = results.find(r => r.parameterId === param.id);
                                     const evaluated = evaluateReferenceRange(param, result?.value ?? '', patient?.sex);
                                     const selectOptions = Array.isArray(param.selectOptions) ? param.selectOptions : [];

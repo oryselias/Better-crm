@@ -56,10 +56,19 @@
   "name": "Hemoglobin",
   "unit": "g/dl",
   "normal_range": "12.0 - 15.0",
-  "type": "numeric",
-  "min_value": 12.0,
-  "max_value": 15.0
+  "male_normal_range": "13-18",
+  "female_normal_range": "12-16",
+  "selectOptions": ["Absent", "Present"],
+  "defaultValue": "Absent",
+  "formula": "{param-a} / {param-b}",
+  "is_segment": false
 }
+```
+
+Segment headings (no result/unit/range) use `"is_segment": true`:
+
+```json
+{ "id": "urer-seg-chemical", "name": "Chemical Examination", "unit": "", "normal_range": "", "is_segment": true }
 ```
 
 ## lab_reports

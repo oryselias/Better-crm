@@ -1,4 +1,5 @@
 import { TestResult, TestCatalog } from '@/lib/reports/services';
+import { isSegmentParameter } from '@/lib/reports/catalog-parameters';
 
 /**
  * Automatically evaluates formulas defined on test parameters and updates results.
@@ -12,7 +13,7 @@ export function applyCalculations(
   let changed = false;
 
   // 1. Gather all parameters from selected tests
-  const allParams = selectedTests.flatMap(t => t.parameters || []);
+  const allParams = selectedTests.flatMap(t => (t.parameters || []).filter(p => !isSegmentParameter(p)));
   const paramsWithFormula = allParams.filter(p => p.formula);
 
   if (paramsWithFormula.length === 0) return results;

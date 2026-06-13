@@ -1,7 +1,9 @@
 import PDFDocument from "pdfkit";
 import QRCode from "qrcode";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { type SupabaseClient } from "@supabase/supabase-js";
 import { evaluateReferenceRange, normalizeTestCatalogEntry } from "@/lib/reports/reference-ranges";
+import { countResultParameters, isSegmentParameter, shouldShowSegmentHeader } from "@/lib/reports/catalog-parameters";
 
 interface ClinicInfo {
   name: string | null;
@@ -11,9 +13,13 @@ interface ClinicInfo {
   logo_url?: string | null;
 }
 
+let cachedLogoBuffer: Buffer | null = null;
+let cachedLogoUrl: string | null = null;
+
 interface GenerateReportOptions {
   reportId?: string;
   paperSize?: "A4" | "A5";
+  supabaseClient?: SupabaseClient;
   reportData?: {
     id: string;
     clinic_id?: string;
@@ -35,6 +41,7 @@ interface GenerateReportOptions {
           selectOptions?: string[];
           defaultValue?: string;
           formula?: string;
+          is_segment?: boolean;
         }>;
       };
       results?: Array<{ parameterId: string; value: string | number; isAbnormal?: boolean }>;
@@ -63,6 +70,7 @@ type ReportTestSnapshot = {
       selectOptions?: string[];
       defaultValue?: string;
       formula?: string;
+      is_segment?: boolean;
     }>;
   };
   price?: number;
@@ -86,21 +94,17 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
     let report = opts.reportData;
     if (!report) {
       if (!opts.reportId) return { success: false, error: "Report not found" };
-      const s = createSupabaseAdminClient();
-      console.log('[PDF Generator] Fetching report:', opts.reportId);
+      const s = opts.supabaseClient ?? createSupabaseAdminClient();
       const { data, error } = await s
         .from("lab_reports")
         .select(`*, patient:patients(full_name,age,sex,phone), clinic:clinics(name,tagline,address,phone,logo_url)`)
         .eq("id", opts.reportId)
         .single();
 
-      console.log('[PDF Generator] Query result - data:', !!data, 'error:', error);
       if (error) {
-        console.error('[PDF Generator] Supabase error:', error.message, 'Details:', error.details);
         return { success: false, error: `Database error: ${error.message}` };
       }
       if (!data) {
-        console.error('[PDF Generator] No data returned for report:', opts.reportId);
         return { success: false, error: "Report not found" };
       }
       report = data;
@@ -111,13 +115,22 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
     const reportTests = await hydrateReportTests(report.tests ?? [], report.clinic_id);
     const clinic: ClinicInfo = report.clinic ?? { name: null };
 
-    // Fetch logo buffer if available
-    const logoBuffer = clinic.logo_url
-      ? await fetch(clinic.logo_url)
-        .then(r => r.arrayBuffer())
-        .then(b => Buffer.from(b))
-        .catch(() => null)
-      : null;
+    // Fetch logo buffer if available and cache it
+    let logoBuffer = null;
+    if (clinic.logo_url) {
+      if (cachedLogoUrl === clinic.logo_url && cachedLogoBuffer) {
+        logoBuffer = cachedLogoBuffer;
+      } else {
+        logoBuffer = await fetch(clinic.logo_url)
+          .then(r => r.arrayBuffer())
+          .then(b => Buffer.from(b))
+          .catch(() => null);
+        if (logoBuffer) {
+          cachedLogoBuffer = logoBuffer;
+          cachedLogoUrl = clinic.logo_url;
+        }
+      }
+    }
 
     // Always print without generated header — clinics use their own pre-printed letterhead.
     // 140pt top (~49mm) clears the letterhead area; 90pt bottom clears the pre-printed footer.
@@ -150,7 +163,7 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
       const qrX = sx + cw * 0.42;
 
       infoCell(doc, "Name", pName, c1, bT + 8);
-      infoCell(doc, "Patient No", rNo, c1, bT + 20);
+      infoCell(doc, "Patient No", (report.patient as { id?: string })?.id?.slice(0, 8).toUpperCase() ?? "N/A", c1, bT + 20);
       infoCell(doc, "Age / Gender", `${pAge} / ${pSex}`, c1, bT + 32);
       infoCell(doc, "Bill No", rNo, c1, bT + 44);
       infoCell(doc, "Referred By", refBy, c1, bT + 56);
@@ -217,43 +230,50 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
       const tn = st.test?.name ?? "Unknown Test";
       const params = st.test?.parameters ?? [];
       const results = st.results ?? [];
+      const resultParamCount = countResultParameters(params);
       let testHeight = 0;
-      
-      if (!params.length) {
+
+      const hasParamValue = (p: (typeof params)[number]) => {
+        const r = resolveResult(p.id, results, resultParamCount);
+        const raw = r?.value?.toString() ?? "—";
+        return raw !== "—" && raw.trim() !== "";
+      };
+
+      if (resultParamCount === 0 && !params.length) {
         const v = results[0]?.value?.toString() ?? "—";
-        if (v !== "—" && v.trim() !== "") {
-          testHeight = 20;
-        }
-      } else {
-        const validParams = params.filter(p => {
-          const r = resolveResult(p.id, results, params.length);
-          const raw = r?.value?.toString() ?? "—";
-          return raw !== "—" && raw.trim() !== "";
-        });
+        if (v !== "—" && v.trim() !== "") testHeight = 20;
+        return testHeight;
+      }
 
-        if (validParams.length === 0) return 0;
+      if (!params.some((p) => !isSegmentParameter(p) && hasParamValue(p))) return 0;
 
-        if (params.length > 1) testHeight += 20;
-        for (const p of validParams) {
-          const r = resolveResult(p.id, results, params.length);
-          const raw = r?.value?.toString() ?? "—";
-          const ev = evaluateReferenceRange(p, r?.value ?? "", report.patient?.sex);
-          const abn = ev.isAbnormal || r?.isAbnormal === true;
-          const lbl = params.length <= 1 || tn.trim().toLowerCase() === p.name.trim().toLowerCase() ? tn : p.name;
-          const valStr = raw !== "—" ? `${raw}`.trim() : "—";
-          const unitStr = p.unit || "—";
-          const fontParam = params.length <= 1 ? "Helvetica-Bold" : "Helvetica";
-          const fontVal = abn ? "Helvetica-Bold" : (params.length <= 1 ? "Helvetica-Bold" : "Helvetica");
-          const fontUnit = "Helvetica";
-          const fontRange = "Helvetica";
-          const paramPadX = params.length > 1 ? padX + 8 : padX;
-          testHeight += Math.max(20,
-            mH(lbl, colW.param - (paramPadX - padX), fontParam, 9),
-            mH(valStr, colW.value, fontVal, 9, "center"),
-            mH(unitStr, colW.unit, fontUnit, 9, "center"),
-            mH(ev.referenceRange ?? "—", colW.range, fontRange, 9, "center")
-          );
+      if (resultParamCount > 1) testHeight += 20;
+
+      for (let i = 0; i < params.length; i++) {
+        const p = params[i];
+        if (isSegmentParameter(p)) {
+          if (shouldShowSegmentHeader(params, i, (parameter) => hasParamValue(parameter))) {
+            testHeight += 18;
+          }
+          continue;
         }
+        if (!hasParamValue(p)) continue;
+
+        const r = resolveResult(p.id, results, resultParamCount);
+        const ev = evaluateReferenceRange(p, r?.value ?? "", report.patient?.sex);
+        const abn = ev.isAbnormal || r?.isAbnormal === true;
+        const lbl = resultParamCount <= 1 || tn.trim().toLowerCase() === p.name.trim().toLowerCase() ? tn : p.name;
+        const valStr = r?.value?.toString().trim() || "—";
+        const unitStr = p.unit || "—";
+        const fontParam = resultParamCount <= 1 ? "Helvetica-Bold" : "Helvetica";
+        const fontVal = abn ? "Helvetica-Bold" : (resultParamCount <= 1 ? "Helvetica-Bold" : "Helvetica");
+        const paramPadX = resultParamCount > 1 ? padX + 8 : padX;
+        testHeight += Math.max(20,
+          mH(lbl, colW.param - (paramPadX - padX), fontParam, 9),
+          mH(valStr, colW.value, fontVal, 9, "center"),
+          mH(unitStr, colW.unit, "Helvetica", 9, "center"),
+          mH(ev.referenceRange ?? "—", colW.range, "Helvetica", 9, "center")
+        );
       }
       return testHeight;
     };
@@ -268,7 +288,7 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
     };
 
     /** Height of the patient-info box drawn at the top of each page (drawPatientInfo). */
-    const PATIENT_INFO_BOX_HEIGHT = 86;
+    const PATIENT_INFO_BOX_HEIGHT = 96;
     /** Height of the table-header row drawn by drawTableHeader. */
     const TABLE_HEADER_HEIGHT = 22;
     let ri = 0;
@@ -288,6 +308,13 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
         const params = st.test?.parameters ?? [];
         const results = st.results ?? [];
 
+        const resultParamCount = countResultParameters(params);
+        const hasParamValue = (p: (typeof params)[number]) => {
+          const r = resolveResult(p.id, results, resultParamCount);
+          const raw = r?.value?.toString() ?? "—";
+          return raw !== "—" && raw.trim() !== "";
+        };
+
         const testHeight = getTestHeight(st);
         if (testHeight === 0) continue; // Skip test entirely if no results
 
@@ -295,7 +322,7 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
           newPage(); doc.y = drawTableHeader(doc.y);
         }
 
-        if (!params.length) {
+        if (resultParamCount === 0 && !params.length) {
           const v = results[0]?.value?.toString() ?? "—";
           if (doc.y + 20 > uY()) { newPage(); doc.y = drawTableHeader(doc.y); }
           const ry = doc.y;
@@ -305,7 +332,7 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
           continue;
         }
 
-        if (params.length > 1) {
+        if (resultParamCount > 1) {
           if (doc.y + 20 > uY()) { newPage(); doc.y = drawTableHeader(doc.y); }
           const ry = doc.y;
           doc.fillColor("#374151").fontSize(9).font("Helvetica-Bold").text(tn, sx + 5, ry + 6, { width: pw });
@@ -313,35 +340,45 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
           doc.fillColor("#000");
         }
 
-        const validParams = params.filter(p => {
-          const r = resolveResult(p.id, results, params.length);
-          const raw = r?.value?.toString() ?? "—";
-          return raw !== "—" && raw.trim() !== "";
-        });
+        for (let i = 0; i < params.length; i++) {
+          const p = params[i];
 
-        for (const p of validParams) {
-          const r = resolveResult(p.id, results, params.length);
+          if (isSegmentParameter(p)) {
+            if (!shouldShowSegmentHeader(params, i, (parameter) => hasParamValue(parameter))) continue;
+            if (doc.y + 18 > uY()) { newPage(); doc.y = drawTableHeader(doc.y); }
+            const ry = doc.y;
+            const paramPadX = resultParamCount > 1 ? padX + 8 : padX;
+            doc.fillColor("#374151").fontSize(9).font("Helvetica-Bold")
+              .text(p.name, sx + paramPadX, ry + padY, { width: colW.param - paramPadX * 2 });
+            doc.y = ry + 18;
+            doc.fillColor("#000");
+            continue;
+          }
+
+          if (!hasParamValue(p)) continue;
+
+          const r = resolveResult(p.id, results, resultParamCount);
           const raw = r?.value?.toString() ?? "—";
           const ev = evaluateReferenceRange(p, r?.value ?? "", report.patient?.sex);
           const abn = ev.isAbnormal || r?.isAbnormal === true;
           const crit = ev.status === "critical_low" || ev.status === "critical_high";
-          const lbl = params.length <= 1 || tn.trim().toLowerCase() === p.name.trim().toLowerCase()
+          const lbl = resultParamCount <= 1 || tn.trim().toLowerCase() === p.name.trim().toLowerCase()
             ? tn
             : p.name;
           const valStr = raw !== "—" ? `${raw}`.trim() : "—";
           const unitStr = p.unit || "—";
 
-          const fontParam = params.length <= 1 ? "Helvetica-Bold" : "Helvetica";
-          const fontVal = abn ? "Helvetica-Bold" : (params.length <= 1 ? "Helvetica-Bold" : "Helvetica");
+          const fontParam = resultParamCount <= 1 ? "Helvetica-Bold" : "Helvetica";
+          const fontVal = abn ? "Helvetica-Bold" : (resultParamCount <= 1 ? "Helvetica-Bold" : "Helvetica");
           const fontUnit = "Helvetica";
           const fontRange = "Helvetica";
 
-          const colorParam = params.length <= 1 ? "#374151" : "#111827";
-          const colorVal = crit ? C.critical : abn ? C.abnormal : (params.length <= 1 ? "#374151" : "#111827");
+          const colorParam = resultParamCount <= 1 ? "#374151" : "#111827";
+          const colorVal = crit ? C.critical : abn ? C.abnormal : (resultParamCount <= 1 ? "#374151" : "#111827");
           const colorUnit = "#111827";
           const colorRange = C.gray;
 
-          const paramPadX = params.length > 1 ? padX + 8 : padX;
+          const paramPadX = resultParamCount > 1 ? padX + 8 : padX;
           const rh = Math.max(20,
             mH(lbl, colW.param - (paramPadX - padX), fontParam, 9),
             mH(valStr, colW.value, fontVal, 9, "center"),
@@ -375,7 +412,6 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
               doc.save();
               doc.fillColor("#dc2626"); // Red color for abnormal arrow
               if (isHigh) {
-                // Up arrow (stem at bottom, arrowhead at top)
                 doc.rect(arrowX + 2, arrowY + 4, 2, 4).fill();
                 doc.moveTo(arrowX, arrowY + 4)
                    .lineTo(arrowX + 6, arrowY + 4)
@@ -383,7 +419,6 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
                    .closePath()
                    .fill();
               } else {
-                // Down arrow (stem at top, arrowhead at bottom)
                 doc.rect(arrowX + 2, arrowY, 2, 4).fill();
                 doc.moveTo(arrowX, arrowY + 4)
                    .lineTo(arrowX + 6, arrowY + 4)
@@ -410,14 +445,16 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
         doc.moveDown(1.5);
       }
 
-      doc.fillColor(C.gray).fontSize(10).font("Helvetica-Bold")
-        .text("End of Report!", sx, doc.y, { align: "center", width: cw });
-
       footer();
 
       return new Promise(res => {
         doc.on("end", () => res({ success: true, pdfBuffer: Buffer.concat(chunks.map(c => Buffer.from(c))) }));
-        doc.on("error", e => { console.error("PDF error:", e); res({ success: false, error: e.message }); });
+        doc.on("error", e => { 
+          const d = doc as { destroy?: () => void; end: () => void };
+          if (typeof d.destroy === "function") d.destroy(); 
+          else d.end(); 
+          res({ success: false, error: e.message }); 
+        });
         doc.end();
       });
     } catch (e) {
@@ -462,8 +499,9 @@ async function hydrateReportTests(raw: ReportTestSnapshot[], _cid?: string) {
 
   function infoCell(doc: InstanceType<typeof PDFDocument>, label: string, value: string, x: number, y: number) {
     doc.fillColor(C.gray).fontSize(8).font("Helvetica").text(`${label}  :`, x, y, { lineBreak: false });
+    const labelWidth = doc.widthOfString(`${label}  :`);
     doc.fillColor("#111827").fontSize(9).font("Helvetica-Bold")
-      .text(value, x + doc.widthOfString(`${label}  :`), y, { lineBreak: false });
+      .text(value, x + labelWidth, y, { lineBreak: false });
   }
 
 
@@ -498,6 +536,7 @@ async function hydrateReportTests(raw: ReportTestSnapshot[], _cid?: string) {
           female_max_value: p.female_max_value ?? c?.female_max_value,
           male_normal_range: p.male_normal_range ?? c?.male_normal_range,
           female_normal_range: p.female_normal_range ?? c?.female_normal_range,
+          is_segment: p.is_segment ?? c?.is_segment,
         };
       }) : cp,
     });
@@ -514,10 +553,10 @@ async function hydrateReportTests(raw: ReportTestSnapshot[], _cid?: string) {
     }
   }
 
-  export async function uploadGeneratedReport(id: string, opts?: { paperSize?: "A4" | "A5" }): Promise<GenerateReportResult> {
-    const r = await generateLabReportPDF({ reportId: id, ...(opts ?? {}) });
+  export async function uploadGeneratedReport(id: string, opts?: { paperSize?: "A4" | "A5"; supabaseClient?: SupabaseClient }): Promise<GenerateReportResult> {
+    const r = await generateLabReportPDF({ reportId: id, supabaseClient: opts?.supabaseClient, ...(opts ?? {}) });
     if (!r.success || !r.pdfBuffer) return r;
-    const s = createSupabaseAdminClient();
+    const s = opts?.supabaseClient ?? createSupabaseAdminClient();
     const { error } = await s.storage.from("lab-reports")
       .upload(`generated/${id}.pdf`, r.pdfBuffer, { contentType: "application/pdf", upsert: true });
     return error ? { success: false, error: error.message } : { success: true };

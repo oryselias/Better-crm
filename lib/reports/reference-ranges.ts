@@ -18,51 +18,12 @@ const NEG = ["negative","non-reactive","non reactive","nonreactive","not detecte
 const POS = ["positive","reactive","detected","present"];
 const INCON = ["equivocal","inconclusive","indeterminate","borderline","weakly positive","weak positive"];
 
-const OVERRIDES: Record<string, Record<string, Partial<ParameterLike>>> = {
-  CBC: {
-    HEMOGLOBIN:                      { male_normal_range:"13-18", female_normal_range:"12-16" },
-    "TOTAL LEUCOCYTE COUNT (TLC)":   { normal_range:"4000-11000" },
-    "NEUTROPHILS (POLYMORPHS)":      { normal_range:"50-70" },
-    LYMPHOCYTES:                     { normal_range:"20-40" },
-    EOSINOPHILS:                     { normal_range:"1-6" },
-    MONOCYTES:                       { normal_range:"2-8" },
-    BASOPHILS:                       { normal_range:"0-2" },
-    "PLATELET COUNT":                { normal_range:"1.5-4.0" },
-    LPCR:                            { normal_range:"11.9-66.9" },
-    MPV:                             { normal_range:"8.6-15.5" },
-    PDW:                             { normal_range:"8.3-25.0" },
-    PCT:                             { normal_range:"0.15-0.62" },
-    "TOTAL RBCS":                    { male_normal_range:"4.5-5.9", female_normal_range:"4.1-5.1" },
-    "MCV (MEAN CELL VOLUME)":        { normal_range:"79-93" },
-    "MCH (MEAN CORPUSCULAR HB)":     { normal_range:"26.7-31.9" },
-    "MCHC (MEAN CORPUSCULAR HB CONC.)": { normal_range:"32-36" },
-    "HCT (HEMATOCRIT)":              { male_normal_range:"40-52", female_normal_range:"36-46" },
-    "RDW-SD":                        { normal_range:"37.0-54.0" },
-    "RDW-CV":                        { normal_range:"11.5-14.5" },
-  },
-  LFT: {
-    "SGPT (ALT)":           { normal_range:"4-36" },
-    "SGOT (AST)":           { normal_range:"8-33" },
-    "BILIRUBIN TOTAL":      { normal_range:"0.1-1.2" },
-    "ALKALINE PHOSPHATASE": { normal_range:"20-130" },
-  },
-  LP: {
-    "TOTAL CHOLESTEROL": { normal_range:"<200" },
-    TRIGLYCERIDES:       { normal_range:"<150" },
-    "HDL CHOLESTEROL":   { male_normal_range:">=40", female_normal_range:">=50" },
-    "LDL CHOLESTEROL":   { normal_range:"<100" },
-  },
-};
-OVERRIDES["LIPID"] = OVERRIDES.LP;
-
 const norm = (p: ReferenceRangeParameter) => ({
   ...p,
   normal_range: p.normal_range ?? p.normalRange ?? null,
   male_normal_range: p.male_normal_range ?? p.normalRangeMale,
   female_normal_range: p.female_normal_range ?? p.normalRangeFemale,
 });
-
-const key = (v: string) => v.trim().toUpperCase();
 
 // Priority: sex-specific range string → generic range string.
 function bounds(p: ReferenceRangeParameter, sex?: SupportedSex): NumericBounds | null {
@@ -151,11 +112,9 @@ export function evaluateReferenceRange(p: ReferenceRangeParameter, raw: string |
 }
 
 export function normalizeTestCatalogEntry<T extends TestLike>(t: T): T {
-  const ov = OVERRIDES[key(t.code ?? "")];
-  if (!ov || !Array.isArray(t.parameters)) return t;
-  return { ...t, parameters: t.parameters.map(p => {
-    const n = norm(p) as T["parameters"][number];
-    const o = ov[key(n.name)];
-    return o ? norm({ ...n, ...o }) as T["parameters"][number] : n;
-  }) };
+  if (!Array.isArray(t.parameters)) return t;
+  return {
+    ...t,
+    parameters: t.parameters.map((p) => norm(p) as T["parameters"][number]),
+  };
 }

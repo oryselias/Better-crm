@@ -13,6 +13,7 @@ import {
 } from '@/lib/reports/services';
 import { evaluateReferenceRange } from '@/lib/reports/reference-ranges';
 import { applyCalculations } from '@/lib/reports/calculations';
+import { countResultParameters, isSegmentParameter, shouldShowSegmentHeader } from '@/lib/reports/catalog-parameters';
 
 type VisibleReportTest = {
   testId: string;
@@ -26,6 +27,7 @@ type ReportResultRow = {
   parameter: TestCatalog['parameters'][number] | null;
   result?: TestResult;
   isTestHeader?: boolean;
+  isSegmentHeader?: boolean;
   isStandaloneTest?: boolean;
 };
 
@@ -138,8 +140,11 @@ export default function LabReportViewPage() {
     ? selectedTests.map((test) => ({
       testId: test.id,
       test,
-      results: (test.parameters ?? []).map((parameter) => {
-        const currentResult = resolveParameterResult(parameter.id, results, (test.parameters ?? []).length);
+      results: (test.parameters ?? [])
+        .filter((parameter) => !isSegmentParameter(parameter))
+        .map((parameter) => {
+        const resultParamCount = countResultParameters(test.parameters);
+        const currentResult = resolveParameterResult(parameter.id, results, resultParamCount);
         return { parameterId: parameter.id, value: currentResult?.value ?? '', isAbnormal: currentResult?.isAbnormal ?? false };
       }),
     }))
@@ -657,9 +662,10 @@ export default function LabReportViewPage() {
                 for (const selectedTest of visibleTests) {
                   const dept = selectedTest.test?.category || 'Other';
                   const parameters = selectedTest.test?.parameters || [];
+                  const resultParamCount = countResultParameters(parameters);
                   let testRows: ReportResultRow[];
 
-                  if (parameters.length === 0) {
+                  if (resultParamCount === 0) {
                     testRows = [{
                       key: `${selectedTest.testId}-empty`,
                       label: selectedTest.test?.name || 'Unknown Test',
@@ -667,15 +673,21 @@ export default function LabReportViewPage() {
                       result: selectedTest.results?.[0],
                       isStandaloneTest: true,
                     }];
-                  } else if (parameters.length === 1) {
+                  } else if (resultParamCount === 1) {
+                    const onlyParam = parameters.find((parameter) => !isSegmentParameter(parameter))!;
                     testRows = [{
-                      key: `${selectedTest.testId}-${parameters[0].id}`,
+                      key: `${selectedTest.testId}-${onlyParam.id}`,
                       label: selectedTest.test?.name || 'Unknown Test',
-                      parameter: parameters[0],
-                      result: resolveParameterResult(parameters[0].id, selectedTest.results, 1),
+                      parameter: onlyParam,
+                      result: resolveParameterResult(onlyParam.id, selectedTest.results, 1),
                       isStandaloneTest: true,
                     }];
                   } else {
+                    const hasValue = (parameter: TestCatalog['parameters'][number]) => {
+                      const result = resolveParameterResult(parameter.id, selectedTest.results, resultParamCount);
+                      return Boolean(result?.value && String(result.value).trim());
+                    };
+
                     testRows = [
                       {
                         key: `${selectedTest.testId}-header`,
@@ -683,13 +695,27 @@ export default function LabReportViewPage() {
                         parameter: null,
                         isTestHeader: true,
                       },
-                      ...parameters.map((parameter) => ({
+                    ];
+
+                    parameters.forEach((parameter, index) => {
+                      if (isSegmentParameter(parameter)) {
+                        if (!editing && !shouldShowSegmentHeader(parameters, index, hasValue)) return;
+                        testRows.push({
+                          key: `${selectedTest.testId}-seg-${parameter.id}`,
+                          label: parameter.name,
+                          parameter: null,
+                          isSegmentHeader: true,
+                        });
+                        return;
+                      }
+
+                      testRows.push({
                         key: `${selectedTest.testId}-${parameter.id}`,
                         label: parameter.name,
                         parameter,
-                        result: resolveParameterResult(parameter.id, selectedTest.results, parameters.length),
-                      }))
-                    ];
+                        result: resolveParameterResult(parameter.id, selectedTest.results, resultParamCount),
+                      });
+                    });
                   }
 
                   if (!deptMap.has(dept)) {
@@ -729,6 +755,14 @@ export default function LabReportViewPage() {
                             return (
                               <tr key={row.key} className="bg-surface-container/30 border-b border-outline-variant/10">
                                 <td colSpan={4} className="py-2.5 px-2 font-bold text-on-surface text-sm">{row.label}</td>
+                              </tr>
+                            );
+                          }
+
+                          if (row.isSegmentHeader) {
+                            return (
+                              <tr key={row.key} className="bg-surface-container/20 border-b border-outline-variant/10">
+                                <td colSpan={4} className="py-2 pl-6 pr-2 font-bold text-on-surface text-sm">{row.label}</td>
                               </tr>
                             );
                           }
