@@ -181,11 +181,12 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
     // ── TEST TABLE ──────────────────────────────────────────────────────
     const pw = cw;
     const colW = {
-      param: Math.floor(pw * 0.45),
-      value: Math.floor(pw * 0.25),
+      param: Math.floor(pw * 0.38),
+      value: Math.floor(pw * 0.16),
+      unit: Math.floor(pw * 0.16),
       range: 0,
     };
-    colW.range = pw - colW.param - colW.value;
+    colW.range = pw - colW.param - colW.value - colW.unit;
 
     const padX = 5, padY = 5;
     const mH = (t: string, w: string | number, f: string, s: number, a: "left" | "center" = "left") => {
@@ -195,9 +196,10 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
 
     const drawTableHeader = (y: number) => {
       doc.fillColor(C.primary).fontSize(9).font("Helvetica-Bold");
-      doc.text("TEST DESCRIPTION", sx + 5, y + 6, { width: colW.param });
-      doc.text("RESULT", sx + colW.param + 5, y + 6, { width: colW.value, align: "center" });
-      doc.text("REFERENCE RANGE", sx + colW.param + colW.value + 5, y + 6, { width: colW.range, align: "center" });
+      doc.text("TEST DESCRIPTION", sx + 5, y + 6, { width: colW.param - 5 });
+      doc.text("RESULT", sx + colW.param + 5, y + 6, { width: colW.value - 10, align: "center" });
+      doc.text("UNIT", sx + colW.param + colW.value + 5, y + 6, { width: colW.unit - 10, align: "center" });
+      doc.text("REFERENCE RANGE", sx + colW.param + colW.value + colW.unit + 5, y + 6, { width: colW.range - 10, align: "center" });
       doc.moveTo(sx, y + 22).lineTo(sx + pw, y + 22).lineWidth(0.5).strokeColor("#000000").stroke();
       return y + 22;
     };
@@ -238,14 +240,18 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
           const ev = evaluateReferenceRange(p, r?.value ?? "", report.patient?.sex);
           const abn = ev.isAbnormal || r?.isAbnormal === true;
           const lbl = params.length <= 1 || tn.trim().toLowerCase() === p.name.trim().toLowerCase() ? tn : p.name;
-          const arrow = abn ? (ev.status.includes("low") ? " (L)" : " (H)") : "";
-          const dv = raw !== "—" ? `${raw} ${p.unit ?? ""}${arrow}`.trim() : "—";
-          const rf = abn ? "Helvetica-Bold" : (params.length <= 1 ? "Helvetica-Bold" : "Helvetica");
+          const valStr = raw !== "—" ? `${raw}`.trim() : "—";
+          const unitStr = p.unit || "—";
+          const fontParam = params.length <= 1 ? "Helvetica-Bold" : "Helvetica";
+          const fontVal = abn ? "Helvetica-Bold" : (params.length <= 1 ? "Helvetica-Bold" : "Helvetica");
+          const fontUnit = "Helvetica";
+          const fontRange = "Helvetica";
           const paramPadX = params.length > 1 ? padX + 8 : padX;
           testHeight += Math.max(20,
-            mH(lbl, colW.param - (paramPadX - padX), rf, 9),
-            mH(dv, colW.value, rf, 9, "center"),
-            mH(ev.referenceRange ?? "—", colW.range, rf, 9, "center")
+            mH(lbl, colW.param - (paramPadX - padX), fontParam, 9),
+            mH(valStr, colW.value, fontVal, 9, "center"),
+            mH(unitStr, colW.unit, fontUnit, 9, "center"),
+            mH(ev.referenceRange ?? "—", colW.range, fontRange, 9, "center")
           );
         }
       }
@@ -293,8 +299,8 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
           const v = results[0]?.value?.toString() ?? "—";
           if (doc.y + 20 > uY()) { newPage(); doc.y = drawTableHeader(doc.y); }
           const ry = doc.y;
-          doc.fillColor("#374151").fontSize(9).font("Helvetica-Bold").text(tn, sx + 5, ry + 5, { width: colW.param });
-          doc.fillColor("#111827").font("Helvetica").text(v, sx + colW.param + 5, ry + 5, { width: colW.value, align: "center" });
+          doc.fillColor("#374151").fontSize(9).font("Helvetica-Bold").text(tn, sx + 5, ry + 5, { width: colW.param - 5 });
+          doc.fillColor("#111827").font("Helvetica").text(v, sx + colW.param + 5, ry + 5, { width: colW.value - 10, align: "center" });
           doc.y = ry + 20; ri++;
           continue;
         }
@@ -322,27 +328,72 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
           const lbl = params.length <= 1 || tn.trim().toLowerCase() === p.name.trim().toLowerCase()
             ? tn
             : p.name;
-          const arrow = abn ? (ev.status.includes("low") ? " (L)" : " (H)") : "";
-          const dv = raw !== "—" ? `${raw} ${p.unit ?? ""}${arrow}`.trim() : "—";
-          const rc = crit ? C.critical : abn ? C.abnormal : (params.length <= 1 ? "#374151" : "#111827");
-          const rf = abn ? "Helvetica-Bold" : (params.length <= 1 ? "Helvetica-Bold" : "Helvetica");
+          const valStr = raw !== "—" ? `${raw}`.trim() : "—";
+          const unitStr = p.unit || "—";
+
+          const fontParam = params.length <= 1 ? "Helvetica-Bold" : "Helvetica";
+          const fontVal = abn ? "Helvetica-Bold" : (params.length <= 1 ? "Helvetica-Bold" : "Helvetica");
+          const fontUnit = "Helvetica";
+          const fontRange = "Helvetica";
+
+          const colorParam = params.length <= 1 ? "#374151" : "#111827";
+          const colorVal = crit ? C.critical : abn ? C.abnormal : (params.length <= 1 ? "#374151" : "#111827");
+          const colorUnit = "#111827";
+          const colorRange = C.gray;
 
           const paramPadX = params.length > 1 ? padX + 8 : padX;
           const rh = Math.max(20,
-            mH(lbl, colW.param - (paramPadX - padX), rf, 9),
-            mH(dv, colW.value, rf, 9, "center"),
-            mH(ev.referenceRange ?? "—", colW.range, rf, 9, "center")
+            mH(lbl, colW.param - (paramPadX - padX), fontParam, 9),
+            mH(valStr, colW.value, fontVal, 9, "center"),
+            mH(unitStr, colW.unit, fontUnit, 9, "center"),
+            mH(ev.referenceRange ?? "—", colW.range, fontRange, 9, "center")
           );
 
           if (doc.y + rh > uY()) { newPage(); doc.y = drawTableHeader(doc.y); }
           const ry = doc.y;
 
-          doc.fillColor(rc).fontSize(9).font(rf)
+          doc.fillColor(colorParam).fontSize(9).font(fontParam)
             .text(lbl, sx + paramPadX, ry + padY, { width: colW.param - paramPadX * 2 });
-          doc.fillColor(rc).font(rf)
-            .text(dv, sx + colW.param + padX, ry + padY, { width: colW.value - padX * 2, align: "center" });
-          doc.fillColor(abn ? rc : C.gray).font(abn ? "Helvetica-Bold" : "Helvetica")
-            .text(ev.referenceRange ?? "—", sx + colW.param + colW.value + padX, ry + padY, { width: colW.range - padX * 2, align: "center" });
+          doc.fillColor(colorVal).font(fontVal)
+            .text(valStr, sx + colW.param + padX, ry + padY, { width: colW.value - padX * 2, align: "center" });
+          doc.fillColor(colorUnit).font(fontUnit)
+            .text(unitStr, sx + colW.param + colW.value + padX, ry + padY, { width: colW.unit - padX * 2, align: "center" });
+          doc.fillColor(colorRange).font(fontRange)
+            .text(ev.referenceRange ?? "—", sx + colW.param + colW.value + colW.unit + padX, ry + padY, { width: colW.range - padX * 2, align: "center" });
+
+          // Draw red up/down arrow if abnormal and not empty
+          if (abn && valStr !== "—") {
+            const isHigh = ev.status.includes("high");
+            const isLow = ev.status.includes("low");
+            if (isHigh || isLow) {
+              doc.font(fontVal).fontSize(9);
+              const valW = doc.widthOfString(valStr);
+              const cx = sx + colW.param + colW.value / 2;
+              const arrowX = cx + valW / 2 + 4;
+              const arrowY = ry + padY + 0.5;
+
+              doc.save();
+              doc.fillColor("#dc2626"); // Red color for abnormal arrow
+              if (isHigh) {
+                // Up arrow (stem at bottom, arrowhead at top)
+                doc.rect(arrowX + 2, arrowY + 4, 2, 4).fill();
+                doc.moveTo(arrowX, arrowY + 4)
+                   .lineTo(arrowX + 6, arrowY + 4)
+                   .lineTo(arrowX + 3, arrowY)
+                   .closePath()
+                   .fill();
+              } else {
+                // Down arrow (stem at top, arrowhead at bottom)
+                doc.rect(arrowX + 2, arrowY, 2, 4).fill();
+                doc.moveTo(arrowX, arrowY + 4)
+                   .lineTo(arrowX + 6, arrowY + 4)
+                   .lineTo(arrowX + 3, arrowY + 8)
+                   .closePath()
+                   .fill();
+              }
+              doc.restore();
+            }
+          }
 
           doc.y = ry + rh;
           doc.fillColor("#000");
