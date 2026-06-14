@@ -108,6 +108,14 @@ export async function deleteClinicAccountPermanently(clinicId: string) {
   if (clinicLookupError) throw new Error(clinicLookupError.message);
   if (!clinic) throw new Error("Clinic not found.");
 
+  // Suspend first so no new logins or RLS writes occur during teardown.
+  const { error: suspendError } = await admin
+    .from("clinics")
+    .update({ status: "suspended" })
+    .eq("id", clinicId);
+
+  if (suspendError) throw new Error(suspendError.message);
+
   const { data: profiles, error: profileError } = await admin
     .from("profiles")
     .select("id")
@@ -125,28 +133,35 @@ export async function deleteClinicAccountPermanently(clinicId: string) {
     if (email) ownerEmails.add(email);
   }
 
-  await deleteClinicStorageArtifacts(clinicId);
+  try {
+    await deleteClinicStorageArtifacts(clinicId);
 
-  if (ownerEmails.size > 0) {
-    const { error: inviteEmailError } = await admin
-      .from("invites")
-      .delete()
-      .in("email", Array.from(ownerEmails));
-    if (inviteEmailError) throw new Error(inviteEmailError.message);
-  }
-
-  if (userIds.length > 0) {
-    const { error: inviteUsedByError } = await admin.from("invites").delete().in("used_by", userIds);
-    if (inviteUsedByError) throw new Error(inviteUsedByError.message);
-
-    for (const userId of userIds) {
-      const { error } = await admin.auth.admin.deleteUser(userId);
-      if (error) throw new Error(error.message);
+    if (ownerEmails.size > 0) {
+      const { error: inviteEmailError } = await admin
+        .from("invites")
+        .delete()
+        .in("email", Array.from(ownerEmails));
+      if (inviteEmailError) throw new Error(inviteEmailError.message);
     }
-  }
 
-  const { error: purgeError } = await admin.rpc("purge_clinic_cascade", { p_clinic_id: clinicId });
-  if (purgeError) throw new Error(purgeError.message);
+    if (userIds.length > 0) {
+      const { error: inviteUsedByError } = await admin.from("invites").delete().in("used_by", userIds);
+      if (inviteUsedByError) throw new Error(inviteUsedByError.message);
+
+      for (const userId of userIds) {
+        const { error } = await admin.auth.admin.deleteUser(userId);
+        if (error) throw new Error(error.message);
+      }
+    }
+
+    const { error: purgeError } = await admin.rpc("purge_clinic_cascade", { p_clinic_id: clinicId });
+    if (purgeError) throw new Error(purgeError.message);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Delete failed.";
+    throw new Error(
+      `${message} Clinic was suspended and may be in a partial state — retry Delete from admin.`,
+    );
+  }
 }
 
 export async function resetOrphanInvite(inviteId: string) {
