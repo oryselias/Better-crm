@@ -17,7 +17,8 @@
     "e2e:install": "playwright install chromium",
     "qmd:update": "powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/qmd.ps1 update",
     "qmd:embed": "powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/qmd.ps1 embed",
-    "qmd:refresh": "npm run qmd:update && npm run qmd:embed"
+    "qmd:refresh": "npm run qmd:update && npm run qmd:embed",
+    "test:unit": "tsx tests/catalog-parameters.test.ts && tsx tests/calculations.test.ts && tsx tests/clinic-account-merge.test.ts"
   },
   "dependencies": {
     "@serwist/next": "^9.5.7",

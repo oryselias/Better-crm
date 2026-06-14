@@ -120,7 +120,11 @@ export async function signupWithInviteAction(formData: FormData) {
 
   const { error: markUsedError } = await admin
     .from("invites")
-    .update({ used_by: userId })
+    .update({
+      used_by: userId,
+      clinic_id: clinicId,
+      clinic_name: null,
+    })
     .eq("id", invite.id);
 
   if (markUsedError) {

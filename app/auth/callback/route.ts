@@ -2,14 +2,20 @@ import { createServerClient } from "@supabase/ssr";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import {
+  clinicAccessErrorMessage,
+  getClinicAccessBlockReason,
+} from "@/lib/auth/clinic-access";
 import { getSupabaseEnv, hasSupabasePublicEnv } from "@/lib/supabase/env";
 
 function getSafeRedirectPath(rawPath: string | null) {
-  if (!rawPath || !rawPath.startsWith("/") || rawPath.startsWith("//")) {
+  if (!rawPath) return "/dashboard";
+  try {
+    const url = new URL(rawPath, "http://localhost");
+    return url.pathname + url.search; // strips host
+  } catch {
     return "/dashboard";
   }
-
-  return rawPath;
 }
 
 export async function GET(request: NextRequest) {
@@ -28,7 +34,7 @@ export async function GET(request: NextRequest) {
     request.nextUrl.searchParams.get("error");
 
   if (providerError) {
-    loginUrl.searchParams.set("error", providerError);
+    loginUrl.searchParams.set("error", providerError.slice(0, 200));
     return NextResponse.redirect(loginUrl);
   }
 
@@ -68,6 +74,19 @@ export async function GET(request: NextRequest) {
   if (error) {
     loginUrl.searchParams.set("error", error.message);
     return NextResponse.redirect(loginUrl);
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    const blockReason = await getClinicAccessBlockReason(supabase, user.id);
+    if (blockReason) {
+      await supabase.auth.signOut();
+      loginUrl.searchParams.set("error", clinicAccessErrorMessage(blockReason));
+      return NextResponse.redirect(loginUrl);
+    }
   }
 
   return response;

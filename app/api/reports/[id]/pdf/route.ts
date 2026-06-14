@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import {
+  clinicAccessErrorMessage,
+  getClinicAccessBlockReason,
+} from "@/lib/auth/clinic-access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { generateLabReportPDF, uploadGeneratedReport } from "@/lib/reports/pdf-generator";
-
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -21,12 +24,19 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const blockReason = await getClinicAccessBlockReason(supabase, user.id);
+    if (blockReason) {
+      return NextResponse.json(
+        { error: clinicAccessErrorMessage(blockReason) },
+        { status: 403 },
+      );
+    }
+
     // Parse formatting options
     const searchParams = request.nextUrl.searchParams;
     const paperSize = searchParams.get("paperSize") === "A5" ? "A5" : "A4";
 
-    // Verify report ownership via RLS
-    // Now that middleware handles the session effectively, we don't need the admin bypass here.
+    // Verify report access via RLS + authenticated server client
     const { data: ownRow } = await supabase
       .from("lab_reports")
       .select("id")
@@ -38,10 +48,11 @@ export async function GET(
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    // Generate PDF using admin client inside the generator.
+    // Generate PDF using the authenticated server client.
     const result = await generateLabReportPDF({
       reportId: id,
       paperSize,
+      supabaseClient: supabase,
     });
 
     if (!result.success || !result.pdfBuffer) {
@@ -81,6 +92,14 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const blockReason = await getClinicAccessBlockReason(supabase, user.id);
+    if (blockReason) {
+      return NextResponse.json(
+        { error: clinicAccessErrorMessage(blockReason) },
+        { status: 403 },
+      );
+    }
+
     // Verify report ownership - RLS ensures user can only access their clinic's reports
     const { data: report } = await supabase
       .from("lab_reports")
@@ -96,8 +115,8 @@ export async function POST(
     const body = await request.json().catch(() => ({}));
     const paperSize: "A4" | "A5" = body?.paperSize === "A5" ? "A5" : "A4";
 
-    // Generate and upload PDF to storage with the requested paper size included again
-    const result = await uploadGeneratedReport(id, { paperSize });
+    // Generate and upload PDF to storage
+    const result = await uploadGeneratedReport(id, { paperSize, supabaseClient: supabase });
 
     if (!result.success) {
       console.error("PDF upload failed:", result.error);

@@ -1,5 +1,9 @@
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
+import {
+  clinicAccessErrorMessage,
+  getClinicAccessBlockReason,
+} from "@/lib/auth/clinic-access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function DashboardLayout({
@@ -19,18 +23,11 @@ export default async function DashboardLayout({
   }
 
   // Clinic enforcement check
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("clinic_id")
-    .eq("id", user.id)
-    .single();
+  const blockReason = await getClinicAccessBlockReason(supabase, user.id);
 
-  if (!profile?.clinic_id) {
-    // If user has no associated clinic, they shouldn't access the dashboard
-    // In a full app you might direct to a "Contact Admin" page,
-    // here we clear their session and send them back to login.
+  if (blockReason) {
     await supabase.auth.signOut();
-    redirect("/login?error=No+clinic+assigned.+Please+contact+administrator.");
+    redirect(`/login?error=${encodeURIComponent(clinicAccessErrorMessage(blockReason))}`);
   }
 
   return <AppShell userEmail={user.email || ""}>{children}</AppShell>;

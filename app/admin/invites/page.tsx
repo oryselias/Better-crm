@@ -1,9 +1,11 @@
 import { headers } from "next/headers";
 
+import { listActiveClinicAccounts, getOrphanUsedInviteIds } from "@/lib/admin/clinic-accounts";
 import { requireSuperAdmin } from "@/lib/auth/super-admin";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { ClinicAccountActions } from "@/components/admin/clinic-account-actions";
 
-import { createInviteAction, revokeInviteAction } from "./actions";
+import { createInviteAction, resetOrphanInviteAction, revokeInviteAction } from "./actions";
 
 type Invite = {
   id: string;
@@ -41,6 +43,20 @@ export default async function InvitesPage({
     .limit(100);
 
   const rows = (invites ?? []) as Invite[];
+
+  let activeAccounts: Awaited<ReturnType<typeof listActiveClinicAccounts>> = [];
+  let accountsError: string | null = null;
+  let orphanInviteIds = new Set<string>();
+
+  try {
+    [activeAccounts, orphanInviteIds] = await Promise.all([
+      listActiveClinicAccounts(),
+      getOrphanUsedInviteIds(),
+    ]);
+  } catch (loadError) {
+    accountsError =
+      loadError instanceof Error ? loadError.message : "Failed to load clinic accounts.";
+  }
 
   return (
     <div className="space-y-8">
@@ -152,11 +168,17 @@ export default async function InvitesPage({
                       <code className="block truncate rounded-lg bg-surface-container-low px-2 py-1 font-mono text-xs">
                         {link}
                       </code>
+                    ) : status === "used" ? (
+                      <span className="text-xs text-on-surface-variant">
+                        {orphanInviteIds.has(inv.id)
+                          ? "Signup incomplete — reset to re-use link"
+                          : "Account created — manage below"}
+                      </span>
                     ) : (
                       <span className="text-xs text-on-surface-variant">—</span>
                     )}
                   </div>
-                  <div className="flex justify-end">
+                  <div className="flex justify-end gap-2">
                     {status === "active" ? (
                       <form action={revokeInviteAction}>
                         <input type="hidden" name="id" value={inv.id} />
@@ -167,11 +189,83 @@ export default async function InvitesPage({
                           Revoke
                         </button>
                       </form>
+                    ) : status === "used" && orphanInviteIds.has(inv.id) ? (
+                      <form action={resetOrphanInviteAction}>
+                        <input type="hidden" name="id" value={inv.id} />
+                        <button
+                          type="submit"
+                          className="rounded-lg border border-amber-500/30 px-3 py-1.5 text-xs font-medium text-amber-400 hover:bg-amber-500/10"
+                        >
+                          Reset invite
+                        </button>
+                      </form>
                     ) : null}
                   </div>
                 </div>
               );
             })
+          )}
+        </div>
+      </section>
+
+      <section className="rounded-3xl border border-outline-variant/30 bg-surface">
+        <div className="flex items-center justify-between border-b border-outline-variant/30 px-6 py-4">
+          <div>
+            <h2 className="text-lg font-semibold tracking-[-0.02em]">Clinic accounts</h2>
+            <p className="mt-1 text-xs text-on-surface-variant">
+              Clinics that completed signup. Suspend blocks login but keeps data. Delete removes everything permanently.
+            </p>
+          </div>
+          <p className="text-xs text-on-surface-variant">{activeAccounts.length} clinics</p>
+        </div>
+        {accountsError ? (
+          <div className="border-b border-outline-variant/20 px-6 py-4 text-sm text-red-400">
+            {accountsError}
+          </div>
+        ) : null}
+        <div className="divide-y divide-outline-variant/20">
+          {activeAccounts.length === 0 ? (
+            <div className="px-6 py-10 text-center text-sm text-on-surface-variant">
+              {accountsError ? "Clinic accounts could not be loaded." : "No clinic accounts yet."}
+            </div>
+          ) : (
+            activeAccounts.map((account) => (
+              <div
+                key={account.clinicId}
+                className="grid gap-3 px-6 py-4 md:grid-cols-[1.4fr_1.2fr_0.7fr_auto] md:items-center"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{account.email}</p>
+                  <p className="text-xs text-on-surface-variant">
+                    Signed up {new Date(account.usedAt).toLocaleString()}
+                  </p>
+                </div>
+                <div className="text-sm">
+                  {account.clinicName}
+                  <span className="ml-2 rounded-full bg-surface-container px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-on-surface-variant">
+                    {account.role}
+                  </span>
+                </div>
+                <div>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ${
+                      account.status === "active"
+                        ? "bg-emerald-500/10 text-emerald-400"
+                        : account.status === "suspended"
+                          ? "bg-amber-500/10 text-amber-400"
+                          : "bg-sky-500/10 text-sky-400"
+                    }`}
+                  >
+                    {account.status}
+                  </span>
+                </div>
+                <ClinicAccountActions
+                  clinicId={account.clinicId}
+                  clinicName={account.clinicName}
+                  status={account.status}
+                />
+              </div>
+            ))
           )}
         </div>
       </section>
