@@ -13,13 +13,18 @@ const CACHE_TTL = 5 * 60 * 1000;
 
 export function invalidateTestCatalog() { _catalogCache = null; }
 
-export async function searchPatients(q: string) {
+export async function searchPatients(q: string): Promise<Patient[]> {
   const s = createSupabaseBrowserClient();
   // Escape PostgREST meta-characters to prevent query injection
   const escapedQ = q.replace(/[\\%.,()]/g, (c) => `\\${c}`);
-  const { data, error } = await s.from('patients').select('id,clinic_id,full_name,age,sex,phone,created_at').or(`full_name.ilike.%${escapedQ}%,phone.ilike.%${escapedQ}%`).order('full_name').limit(20);
+  const { data, error } = await s
+    .from('patients')
+    .select('id,clinic_id,full_name,age,sex,phone,created_by,created_at,updated_at')
+    .or(`full_name.ilike.%${escapedQ}%,phone.ilike.%${escapedQ}%`)
+    .order('full_name')
+    .limit(20);
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []) as Patient[];
 }
 
 export async function createPatient(p: { 
@@ -53,11 +58,11 @@ export async function createPatient(p: {
       phone: normalizePatientPhone(p.phone),
       created_by: user.id
     })
-    .select('id,clinic_id,full_name,age,sex,phone,created_at') // ✅ FIXED
+    .select('id,clinic_id,full_name,age,sex,phone,created_by,created_at,updated_at')
     .single();
 
   if (error) throw error;
-  return data;
+  return data as Patient;
 }
 export async function getTestCatalog(): Promise<TestCatalog[]> {
   if (_catalogCache && Date.now() - _catalogCache.ts < CACHE_TTL) return _catalogCache.data;
@@ -119,12 +124,12 @@ export async function getReports(f: ReportFilters = {}, page = 1, limit = 50): P
 export async function getReportById(id: string): Promise<LabReport | null> {
   const s = createSupabaseBrowserClient();
   const { data, error } = await s.from('lab_reports')
-    .select(`id,clinic_id,patient_id,report_no,status,tests,discount,total_amount,final_amount,notes,referred_by,created_at,completed_at,created_by,patient:patients(id,clinic_id,full_name,age,sex,phone,created_at),clinic:clinics(name)`)
+    .select(`id,clinic_id,patient_id,report_no,status,tests,discount,total_amount,final_amount,notes,referred_by,created_at,completed_at,created_by,patient:patients(id,clinic_id,full_name,age,sex,phone,created_by,created_at,updated_at),clinic:clinics(name)`)
     .eq('id', id)
     .single();
   if (error) return null;
   // Supabase returns nested relations as arrays; unwrap to single objects
-  const patient = Array.isArray(data.patient) ? data.patient[0] : data.patient;
+  const patient = (Array.isArray(data.patient) ? data.patient[0] : data.patient) as Patient | undefined;
   const clinic = Array.isArray(data.clinic) ? data.clinic[0] : data.clinic;
   return { ...data, patient, clinic, tests: await hydrateReportTests((data.tests ?? []) as SelectedTest[]) };
 }
