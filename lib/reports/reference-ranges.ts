@@ -95,8 +95,8 @@ function parseBounds(r: string): NumericBounds | null {
 
 function fmtBounds(b: NumericBounds) {
   if (typeof b.min === "number" && typeof b.max === "number") return `${b.min}-${b.max}`;
-  if (typeof b.max === "number") return `${b.maxInclusive === false ? "<" : "\u2264"} ${b.max}`;
-  if (typeof b.min === "number") return `${b.minInclusive === false ? ">" : "\u2265"} ${b.min}`;
+  if (typeof b.max === "number") return `${b.maxInclusive === false ? "<" : "<="} ${b.max}`;
+  if (typeof b.min === "number") return `${b.minInclusive === false ? ">" : ">="} ${b.min}`;
   return "\u2014";
 }
 
