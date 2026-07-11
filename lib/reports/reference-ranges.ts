@@ -86,10 +86,10 @@ function parseBounds(r: string): NumericBounds | null {
   if (!t) return null;
   const b = t.match(/(-?\d+(\.\d+)?)\s*(?:to|-)\s*(-?\d+(\.\d+)?)/i);
   if (b) return { min: +b[1], max: +b[3], minInclusive: true, maxInclusive: true };
-  const lt = t.match(/^<=?\s*(-?\d+(\.\d+)?)/);
-  if (lt) return { max: +lt[1], maxInclusive: t.startsWith("<=") };
-  const gt = t.match(/^>=?\s*(-?\d+(\.\d+)?)/);
-  if (gt) return { min: +gt[1], minInclusive: t.startsWith(">=") };
+  const lt = t.match(/^(?:<=?|≤)\s*(-?\d+(\.\d+)?)/);
+  if (lt) return { max: +lt[1], maxInclusive: t.startsWith("<=") || t.startsWith("≤") };
+  const gt = t.match(/^(?:>=?|≥)\s*(-?\d+(\.\d+)?)/);
+  if (gt) return { min: +gt[1], minInclusive: t.startsWith(">=") || t.startsWith("≥") };
   return null;
 }
 
