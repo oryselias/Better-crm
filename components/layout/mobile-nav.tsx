@@ -34,16 +34,16 @@ export function MobileNav({ userEmail }: { userEmail: string }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex w-[80px] flex-col items-center justify-center gap-1 rounded-xl p-2 transition-all active:scale-95 ${
+                className={`flex flex-1 max-w-[76px] sm:max-w-[84px] flex-col items-center justify-center gap-1 rounded-xl p-1.5 sm:p-2 transition-all active:scale-95 ${
                   isActive ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
                 }`}
               >
-                <div className={`flex items-center justify-center rounded-2xl px-4 py-1 transition-colors ${
+                <div className={`flex items-center justify-center rounded-2xl px-3 py-1 sm:px-4 transition-colors ${
                   isActive ? "bg-primary-container/60 text-primary" : "bg-transparent"
                 }`}>
-                  <Icon className="h-5 w-5" />
+                  <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
-                <span className="text-[10px] font-medium tracking-wide">
+                <span className="text-[10px] font-medium tracking-wide truncate max-w-full">
                   {item.label}
                 </span>
               </Link>

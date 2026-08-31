@@ -104,6 +104,7 @@ export default function LabReportViewPage() {
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [printingPdf, setPrintingPdf] = useState(false);
   const [paperSize, setPaperSize] = useState<"A4" | "A5">("A4");
+  const [includeTemplate, setIncludeTemplate] = useState(false);
   const testSearchTerm = testSearchQuery.trim().toLowerCase();
 
   // '' = All Departments
@@ -149,7 +150,7 @@ export default function LabReportViewPage() {
   // No auto-select: default is "All Departments" (empty string)
 
   const buildPdfUrl = () =>
-    `/api/reports/${reportId}/pdf?paperSize=${paperSize}`;
+    `/api/reports/${reportId}/pdf?paperSize=${paperSize}&includeTemplate=${includeTemplate}`;
 
   const syncEditableState = useCallback((currentReport: LabReport) => {
     setSelectedTests(
@@ -415,11 +416,21 @@ export default function LabReportViewPage() {
                 <select
                   value={paperSize}
                   onChange={(e) => setPaperSize(e.target.value as "A4" | "A5")}
-                  className="rounded border border-outline-variant/30 bg-surface-container py-0.5 px-2 focus:outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer"
+                  className="rounded border border-outline-variant/30 bg-surface-container py-0.5 px-2 focus:outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer text-xs sm:text-sm"
                 >
                   <option value="A4">A4</option>
                   <option value="A5">A5</option>
                 </select>
+              </label>
+
+              <label className="flex items-center gap-1.5 text-on-surface cursor-pointer shrink-0 text-xs sm:text-sm select-none">
+                <input
+                  type="checkbox"
+                  checked={includeTemplate}
+                  onChange={(e) => setIncludeTemplate(e.target.checked)}
+                  className="h-3.5 w-3.5 rounded border-outline-variant/50 accent-primary cursor-pointer"
+                />
+                <span>Include Template</span>
               </label>
             </div>
 

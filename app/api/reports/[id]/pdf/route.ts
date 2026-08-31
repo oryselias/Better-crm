@@ -24,6 +24,7 @@ export async function GET(
     // Parse formatting options
     const searchParams = request.nextUrl.searchParams;
     const paperSize = searchParams.get("paperSize") === "A5" ? "A5" : "A4";
+    const includeTemplate = searchParams.get("includeTemplate") === "true";
 
     // Verify report ownership via RLS
     // Now that middleware handles the session effectively, we don't need the admin bypass here.
@@ -42,6 +43,7 @@ export async function GET(
     const result = await generateLabReportPDF({
       reportId: id,
       paperSize,
+      includeTemplate,
     });
 
     if (!result.success || !result.pdfBuffer) {
@@ -95,9 +97,10 @@ export async function POST(
     // Parse formatting options from request body
     const body = await request.json().catch(() => ({}));
     const paperSize: "A4" | "A5" = body?.paperSize === "A5" ? "A5" : "A4";
+    const includeTemplate: boolean = body?.includeTemplate === true;
 
     // Generate and upload PDF to storage with the requested paper size included again
-    const result = await uploadGeneratedReport(id, { paperSize });
+    const result = await uploadGeneratedReport(id, { paperSize, includeTemplate });
 
     if (!result.success) {
       console.error("PDF upload failed:", result.error);
