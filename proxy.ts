@@ -9,6 +9,7 @@ const protectedPrefixes = [
   "/patients",
   "/lab-report",
   "/test-catalog",
+  "/settings",
   "/onboarding",
   "/setup/supabase",
   "/api",

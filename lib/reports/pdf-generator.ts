@@ -9,11 +9,13 @@ interface ClinicInfo {
   address?: string | null;
   phone?: string | null;
   logo_url?: string | null;
+  template_url?: string | null;
 }
 
 interface GenerateReportOptions {
   reportId?: string;
   paperSize?: "A4" | "A5";
+  includeTemplate?: boolean;
   reportData?: {
     id: string;
     clinic_id?: string;
@@ -90,7 +92,7 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
       console.log('[PDF Generator] Fetching report:', opts.reportId);
       const { data, error } = await s
         .from("lab_reports")
-        .select(`*, patient:patients(full_name,age,sex,phone), clinic:clinics(name,tagline,address,phone,logo_url)`)
+        .select(`*, patient:patients(full_name,age,sex,phone), clinic:clinics(name,tagline,address,phone,logo_url,template_url)`)
         .eq("id", opts.reportId)
         .single();
 
@@ -111,16 +113,22 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
     const reportTests = await hydrateReportTests(report.tests ?? [], report.clinic_id);
     const clinic: ClinicInfo = report.clinic ?? { name: null };
 
-    // Fetch logo buffer if available
-    const logoBuffer = clinic.logo_url
-      ? await fetch(clinic.logo_url)
-        .then(r => r.arrayBuffer())
-        .then(b => Buffer.from(b))
-        .catch(() => null)
+    // Fetch template background buffer if requested and available
+    const templateBuffer = (opts.includeTemplate && clinic.template_url)
+      ? await fetch(clinic.template_url)
+          .then(async r => {
+            if (!r.ok) return null;
+            const arr = await r.arrayBuffer();
+            return Buffer.from(arr);
+          })
+          .catch((err) => {
+            console.warn("[PDF Generator] Failed to fetch clinic template:", err);
+            return null;
+          })
       : null;
 
-    // Always print without generated header — clinics use their own pre-printed letterhead.
-    // 140pt top (~49mm) clears the letterhead area; 90pt bottom clears the pre-printed footer.
+    // Always print without generated header text — clinics use pre-printed letterhead or uploaded background template.
+    // 140pt top (~49mm) clears the letterhead area; 90pt bottom clears the footer.
     const marginObj = { top: 140, bottom: 90, left: 50, right: 50 };
     const doc = new PDFDocument({ margins: marginObj, size: paperSize });
     const chunks: Uint8Array[] = [];
@@ -130,6 +138,21 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
     const cw = doc.page.width - doc.page.margins.left - doc.page.margins.right;
     const fY = () => doc.page.height - doc.page.margins.bottom - 12;
     const uY = () => fY() - 12;
+
+    const drawTemplateBackground = () => {
+      if (templateBuffer) {
+        try {
+          doc.save();
+          doc.image(templateBuffer, 0, 0, {
+            width: doc.page.width,
+            height: doc.page.height,
+          });
+          doc.restore();
+        } catch (e) {
+          console.warn("[PDF Generator] Failed to draw template background:", e);
+        }
+      }
+    };
 
     // PATIENT DATA PREP
     const pName = report.patient?.full_name ?? "Unknown";
@@ -172,10 +195,12 @@ export async function generateLabReportPDF(opts: GenerateReportOptions): Promise
     const newPage = () => {
       footer();
       doc.addPage({ margins: marginObj, size: paperSize });
+      drawTemplateBackground();
       drawPatientInfo();
     };
 
-    // ── PATIENT INFO BOX ────────────────────────────────────────────────
+    // ── INITIAL PAGE BACKGROUND & PATIENT INFO BOX ──────────────────────
+    drawTemplateBackground();
     drawPatientInfo();
 
     // ── TEST TABLE ──────────────────────────────────────────────────────
@@ -514,7 +539,7 @@ async function hydrateReportTests(raw: ReportTestSnapshot[], _cid?: string) {
     }
   }
 
-  export async function uploadGeneratedReport(id: string, opts?: { paperSize?: "A4" | "A5" }): Promise<GenerateReportResult> {
+  export async function uploadGeneratedReport(id: string, opts?: { paperSize?: "A4" | "A5"; includeTemplate?: boolean }): Promise<GenerateReportResult> {
     const r = await generateLabReportPDF({ reportId: id, ...(opts ?? {}) });
     if (!r.success || !r.pdfBuffer) return r;
     const s = createSupabaseAdminClient();
