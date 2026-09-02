@@ -5,10 +5,10 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 export default async function AdminClinicsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; search?: string }>;
+  searchParams: Promise<{ status?: string; search?: string; deleted?: string }>;
 }) {
   await requireSuperAdmin();
-  const { status: statusFilter, search: searchQuery } = await searchParams;
+  const { status: statusFilter, search: searchQuery, deleted: deletedClinicName } = await searchParams;
 
   const admin = createSupabaseAdminClient();
 
@@ -82,6 +82,22 @@ export default async function AdminClinicsPage({
           Invite New Clinic
         </Link>
       </div>
+
+      {deletedClinicName && (
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-xs font-medium text-emerald-500 animate-in fade-in">
+          <div className="flex items-center gap-2.5">
+            <svg className="h-4 w-4 shrink-0 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <span>
+              Clinic <strong className="font-semibold text-on-surface">&ldquo;{deletedClinicName}&rdquo;</strong> and all associated reports, patients, and staff logins have been permanently deleted.
+            </span>
+          </div>
+          <Link href="/admin/clinics" className="text-on-surface-variant hover:text-on-surface underline transition-colors">
+            Dismiss
+          </Link>
+        </div>
+      )}
 
       {/* Filter Tabs */}
       <div className="flex flex-wrap items-center justify-between gap-4">
