@@ -11,25 +11,52 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-screen bg-surface-container-lowest">
-      <header className="border-b border-outline-variant/30 bg-surface px-6 py-4">
-        <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link href="/admin/invites" className="text-lg font-semibold tracking-[-0.02em]">
-              Better CRM · Super Admin
+      <header className="sticky top-0 z-30 border-b border-outline-variant/30 bg-surface/80 backdrop-blur px-6 py-3.5">
+        <div className="mx-auto flex max-w-7xl items-center justify-between">
+          <div className="flex items-center gap-8">
+            <Link href="/admin" className="flex items-center gap-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-xs font-bold text-on-primary">
+                SA
+              </span>
+              <span className="text-base font-bold tracking-tight text-on-surface">
+                Better CRM <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-primary/10 text-primary uppercase ml-1">Super Admin</span>
+              </span>
             </Link>
-            <nav className="flex gap-4 text-sm text-on-surface-variant">
-              <Link href="/admin/invites" className="hover:text-on-surface">
-                Invites
+            <nav className="flex items-center gap-1 text-sm">
+              <Link
+                href="/admin"
+                className="rounded-lg px-3 py-1.5 font-medium text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"
+              >
+                Dashboard
               </Link>
-              <Link href="/admin/clinics" className="hover:text-on-surface">
+              <Link
+                href="/admin/clinics"
+                className="rounded-lg px-3 py-1.5 font-medium text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"
+              >
                 Clinics
+              </Link>
+              <Link
+                href="/admin/invites"
+                className="rounded-lg px-3 py-1.5 font-medium text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"
+              >
+                Invites
               </Link>
             </nav>
           </div>
-          <div className="text-xs text-on-surface-variant">{user.email}</div>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/dashboard"
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              Go to CRM &rarr;
+            </Link>
+            <span className="text-xs text-on-surface-variant bg-surface-container px-2.5 py-1 rounded-full border border-outline-variant/30">
+              {user.email}
+            </span>
+          </div>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-6 py-10">{children}</main>
+      <main className="mx-auto max-w-7xl px-6 py-8">{children}</main>
     </div>
   );
 }
